@@ -25,7 +25,6 @@ export default function Login() {
     useEffect(() => setOnce(true), [])
     useEffect(() => {
         if (once) {
-            console.log('Login page loaded')
             setTimeout(() => {
                 setLpage('login')
             }, 3200);
@@ -48,7 +47,6 @@ export default function Login() {
     }
 
     useEffect(() => {
-        console.log('Login page changed', lpage)
         if(lpage === 'login'){
             if(downRef.current) downRef.current.style.animation = 'inp-up 1s ease-in-out'
             if(mainRef.current) mainRef.current.style.animation = 'main-up 1s ease-in-out'

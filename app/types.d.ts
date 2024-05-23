@@ -25,3 +25,8 @@ interface IShadow{
     blur:number;
     color:vec4;
 }
+
+interface socketProps{
+    socket:Socket;
+    setSocket:React.Dispatch<React.SetStateAction<Socket|null>>;
+}

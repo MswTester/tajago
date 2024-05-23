@@ -3,13 +3,14 @@ import { useDispatch, useSelector } from "react-redux"
 import { Socket } from "socket.io-client"
 import { shadowToStyle } from "~/data/utils"
 
-export default function PlayState() {
+export default function PlayState(props:socketProps) {
     const dispatch = useDispatch()
     const user:IUser = useSelector((state:any) => state.user)
     const isFetching:boolean = useSelector((state:any) => state.isFetching)
-    const socket:Socket = useSelector((state:any) => state.socket)
     const matchRef = useRef<HTMLDivElement>(null)
     const [once, setOnce] = useState<boolean>(false)
+    const socket:Socket = props.socket
+
     useEffect(() => setOnce(true), [])
     useEffect(() => {
         if(once){
@@ -41,7 +42,13 @@ export default function PlayState() {
     }, [once])
 
     const handleMatch = () => {
-        
+        socket.emit('match', {
+            id: user.id,
+            rating: user.rating
+        })
+        socket.once('match', () => {
+            
+        })
     }
 
     return <div className="w-full h-full flex flex-col justify-center items-center">

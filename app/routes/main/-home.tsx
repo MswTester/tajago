@@ -6,7 +6,7 @@ import { useInterval, useWindowSize } from "usehooks-ts";
 import { shadowToStyle } from "~/data/utils";
 import PlayState from "./-play";
 
-export default function Home() {
+export default function Home(props:socketProps) {
     const dispatch = useDispatch();
     const isFetching:boolean = useSelector((state:any) => state.isFetching)
     const user:IUser = useSelector((state:any) => state.user)
@@ -15,7 +15,6 @@ export default function Home() {
     const [backObjs, setBackObjs] = useState<Obj[]>([])
     const [cursorPos, setCursorPos] = useState<number[]>([0, 0])
     const matchRef = useRef<HTMLDivElement>(null)
-    const [matchShadows, setMatchShadows] = useState<IShadow[]>([])
 
     const handleMouseMove = (e:MouseEvent) => {
         setCursorPos([e.clientX, e.clientY])
@@ -76,7 +75,7 @@ export default function Home() {
     return <>
         <div className="w-full h-full flex flex-col justify-center items-center fade">
             <WebCanvas idx={-1} objs={backObjs} bg="linear-gradient(85deg, #001, #205, #001)"/>
-            {state === 'play' ? <PlayState />:
+            {state === 'play' ? <PlayState {...props} />:
             state === 'settings' ? <div>
             </div>:
             state === 'rank' ? <div>
