@@ -4,6 +4,7 @@ const initialAppState = {
     error:'',
     user:null,
     selectedUser:null,
+    socket:null,
 };
 export const rootReducer = (
     state = initialAppState,

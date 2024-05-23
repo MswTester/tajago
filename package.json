@@ -21,6 +21,7 @@
     "react-dom": "^18.2.0",
     "react-redux": "^9.1.2",
     "redux": "^5.0.1",
+    "socket.io-client": "^4.7.5",
     "usehooks-ts": "^3.1.0"
   },
   "devDependencies": {
