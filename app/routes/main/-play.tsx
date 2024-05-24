@@ -1,9 +1,13 @@
 import { useEffect, useRef, useState } from "react"
-import { useSelector } from "react-redux"
+import { useDispatch, useSelector } from "react-redux"
+import { Socket } from "socket.io-client"
 import { shadowToStyle } from "~/data/utils"
 
 export default function PlayState() {
-    const user = useSelector((state:any) => state.user)
+    const dispatch = useDispatch()
+    const user:IUser = useSelector((state:any) => state.user)
+    const isFetching:boolean = useSelector((state:any) => state.isFetching)
+    const socket:Socket = useSelector((state:any) => state.socket)
     const matchRef = useRef<HTMLDivElement>(null)
     const [once, setOnce] = useState<boolean>(false)
     useEffect(() => setOnce(true), [])
@@ -35,10 +39,15 @@ export default function PlayState() {
             }
         }
     }, [once])
+
+    const handleMatch = () => {
+        
+    }
+
     return <div className="w-full h-full flex flex-col justify-center items-center">
         <div className="w-96 h-96 rounded-full flex flex-col justify-center items-center gap-10 select-none cursor-pointer bg-[#fff0] hover:bg-[#fff2] transition" ref={matchRef}>
             <div className="font-anton font-bold text-lg">{user.rating} R</div>
-            <div className="text-4xl font-anton font-bold">Match</div>
+            <div className="text-4xl font-anton font-bold" onClick={handleMatch}>Match</div>
         </div>
     </div>
 }

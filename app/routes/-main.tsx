@@ -5,7 +5,8 @@ import { useEffect, useState } from "react";
 import Home from "./main/-home";
 import { io, Socket } from "socket.io-client";
 
-const url = process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : 'https://tajago.onrender.com/'
+const url = process.env.NODE_ENV === 'development' ? 'http://127.0.0.1:8080' : 'https://tajago.onrender.com/'
+const sock = io(url)
 
 export default function Main() {
     const dispatch = useDispatch();
@@ -19,16 +20,15 @@ export default function Main() {
     useEffect(() => setOnce(true), [])
     useEffect(() => {
         if(once){
-            const socket = io(url)
             try{
-                socket.on('connect', () => {
-                    dispatch({type:'socket', value:socket})
+                sock.on('connect', () => {
+                    dispatch({type:'socket', value:sock})
                 })
             } catch(err){
                 dispatch({type:'error', value:'Failed to connect to socket server'})
             }
             return () => {
-                socket.disconnect()
+                sock.disconnect()
             }
         }
     }, [once])
