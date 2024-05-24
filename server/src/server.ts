@@ -1,23 +1,28 @@
 import express from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
-import path from "path";
+import cors from "cors";
 
 const app = express();
 const server = createServer(app);
+
+const corsOptions = {
+  origin: 'http://localhost:5173',
+  methods: ['GET', 'POST'],
+  allowedHeaders: ['Access-Control-Allow-Origin', 'Content-Type'],
+  credentials: true
+}
+
 const io = new Server(server, {
-    cors: {
-        origin: '*',
-        methods: ['GET', 'POST'],
-        allowedHeaders: ['Access-Control-Allow-Origin'],
-        credentials: true
-    },
+    cors: corsOptions
 });
 
 const port = process.env.PORT || 8080;
 
+app.use(cors(corsOptions));
+
 app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "../public/index.html"));
+    res.send("server is running");
 })
 
 io.on("connection", (socket) => {
