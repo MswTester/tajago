@@ -1,5 +1,6 @@
 export default class Obj{
     tag:string = '';
+    customData:{[key:string]:any} = {};
     position:vec2 = [0, 0];
     velocity:vec2 = [0, 0];
     size:vec2 = [0, 0];

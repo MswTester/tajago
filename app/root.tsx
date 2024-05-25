@@ -16,6 +16,8 @@ const usingFonts = [
   'Black Ops One',
   'Bebas Neue',
   'Major Mono Display',
+  'Poppins',
+  'Josefin Sans',
 ]
 
 export const links: LinksFunction = () => [

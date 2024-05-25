@@ -25,7 +25,8 @@ export default function Register(props:{setLpage:Dispatch<SetStateAction<string>
             avc:[],
             acc:[],
             wins:0,
-            losses:0
+            losses:0,
+            admin:false
         }
         const res = await fetch('/controller/col/users/type/create', {
             method:'POST',

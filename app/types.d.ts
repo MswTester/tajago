@@ -9,6 +9,7 @@ interface IUser{
     acc:number[]; // accuracy
     wins:number;
     losses:number;
+    admin:boolean;
 }
 
 interface storeAction {
@@ -29,4 +30,33 @@ interface IShadow{
 interface socketProps{
     socket:Socket;
     setSocket:React.Dispatch<React.SetStateAction<Socket|null>>;
+}
+
+/* Server Types */
+
+interface IStat{
+    id:string; // userID
+    rating:number; // rating
+    name:string; // username
+}
+
+interface IMatch{
+    roomID:string;
+    rating:number;
+    name:string; // username
+    time:number; // Date.now()
+}
+
+interface IRoom{
+    players:InRoomPlayer[];
+    name:string;
+    private:boolean;
+    owner:string; // owner username
+    status:string; // waiting, playing
+}
+
+interface InRoomPlayer{
+    socketID:string;
+    name:string;
+    rating:number;
 }

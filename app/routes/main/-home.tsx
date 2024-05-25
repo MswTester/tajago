@@ -5,16 +5,24 @@ import Obj from "~/data/obj";
 import { useInterval, useWindowSize } from "usehooks-ts";
 import { shadowToStyle } from "~/data/utils";
 import PlayState from "./-play";
+import { Socket } from "socket.io-client";
+import Navbar from "./-navbar";
+import SettingState from "./-settings";
+import RankState from "./-rank";
+import RoomState from "./-rooms";
+import LeaderboardState from "./-leaderboard";
+import InRoom from "./-inroom";
 
 export default function Home(props:socketProps) {
+    const socket:Socket = props.socket
     const dispatch = useDispatch();
     const isFetching:boolean = useSelector((state:any) => state.isFetching)
     const user:IUser = useSelector((state:any) => state.user)
-    const [state, setState] = useState<string>("play")
+    const homeState:string = useSelector((state:any) => state.homeState)
+    const [state, setState] = useState<string>('play')
     const [once, setOnce] = useState<boolean>(false)
     const [backObjs, setBackObjs] = useState<Obj[]>([])
     const [cursorPos, setCursorPos] = useState<number[]>([0, 0])
-    const matchRef = useRef<HTMLDivElement>(null)
 
     const handleMouseMove = (e:MouseEvent) => {
         setCursorPos([e.clientX, e.clientY])
@@ -23,6 +31,7 @@ export default function Home(props:socketProps) {
     useEffect(() => setOnce(true), [])
     useEffect(() => {
         if(once){
+            socket.emit('online', user.id)
             let bObjs:Obj[] = []
             let width = window.innerWidth
             let height = window.innerHeight
@@ -33,9 +42,11 @@ export default function Home(props:socketProps) {
             window.addEventListener('resize', resize)
             
             const particleLoop = setInterval(() => {
+                if(document.hidden) return
+                const dis = Math.random() * 0.5 + 0.5
                 const obj = new Obj(
                     [Math.random() * width, height + 20],
-                    [10, 10],
+                    [dis*10, dis*10],
                     [1, 1],
                     0,
                     0.7,
@@ -44,15 +55,17 @@ export default function Home(props:socketProps) {
                     100
                 )
                 obj.tag = 'particle'
+                obj.customData['speed'] = dis/10
                 obj.setGlow(20, 5, 5, 0.05)
                 bObjs.unshift(obj)
             }, 200);
 
             const updateLoop = setInterval(() => {
+                if(document.hidden) return
                 bObjs = bObjs.map(obj => {
                     if(obj.tag == 'particle'){
                         obj.velocity[0] += Math.random() * 0.2 - 0.1
-                        obj.velocity[1] -= 0.05
+                        obj.velocity[1] -= obj.customData['speed']
                     }
                     obj.update()
                     return obj
@@ -72,18 +85,23 @@ export default function Home(props:socketProps) {
         }
     }, [once])
 
+    useEffect(() => {
+        setTimeout(() => {
+            setState(homeState)
+        }, 290);
+    }, [homeState])
+
     return <>
         <div className="w-full h-full flex flex-col justify-center items-center fade">
             <WebCanvas idx={-1} objs={backObjs} bg="linear-gradient(85deg, #001, #205, #001)"/>
             {state === 'play' ? <PlayState {...props} />:
-            state === 'settings' ? <div>
-            </div>:
-            state === 'rank' ? <div>
-            </div>:
-            state === 'rooms' ? <div>
-            </div>:
-            null
-            }
+            state === 'settings' ? <SettingState {...props} />:
+            state === 'rank' ? <RankState {...props} />:
+            state === 'rooms' ? <RoomState {...props} />:
+            state === 'leaderboard' ? <LeaderboardState {...props} />:
+            state === 'room' ? <InRoom {...props} />:
+            null}
+            {state !== 'room' && <Navbar />}
             <div className="fixed top-0 left-0 w-full h-full fade pointer-events-none">
                 <div className="shar fixed" style={{left:`${cursorPos[0]}px`, top:`${cursorPos[1]}px`}}></div>
             </div>

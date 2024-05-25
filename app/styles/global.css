@@ -21,6 +21,7 @@ html, body{
     justify-content: center;
     align-items: center;
     z-index: -10;
+    @apply font-josefin-sans;
 }
 
 @keyframes l1 {
@@ -74,37 +75,21 @@ html, body{
 }
 
 @keyframes inp-up {
-    0%{
-        transform: translateY(80px);
-    }
-    100%{
-        transform: translateY(0);
-    }
+    0%{transform: translateY(80px);}
+    100%{transform: translateY(0);}
 }
 @keyframes inp-down {
-    0%{
-        transform: translateY(0);
-    }
-    100%{
-        transform: translateY(80px);
-    }
+    0%{transform: translateY(0);}
+    100%{transform: translateY(80px);}
 }
 
 @keyframes main-up {
-    0%{
-        transform: scale(0) rotate(30deg);
-    }
-    100%{
-        transform: scale(1) rotate(0deg);
-    }
+    0%{transform: scale(0) rotate(30deg);}
+    100%{transform: scale(1) rotate(0deg);}
 }
 @keyframes main-down {
-    0%{
-        transform: scale(1) rotate(0deg);
-    }
-    100%{
-        transform: scale(0) rotate(30deg);
-    }
+    0%{transform: scale(1) rotate(0deg);}
+    100%{transform: scale(0) rotate(30deg);}
 }
 
 .sweep{
@@ -144,7 +129,26 @@ button{
     transition: 0.3s box-shadow;
 }
 
-button:hover{
+select{
+    box-shadow: 2px 0 5px #fff,
+    0 3px 10px #aff,
+    4px 0 15px #faf,
+    0 5px 20px #dbf,
+    inset -20px 20px 100px #203;
+    border: none;
+}
+
+textarea{
+    box-shadow: 2px 0 5px #fff,
+    0 3px 10px #aff,
+    4px 0 15px #faf,
+    0 5px 20px #dbf,
+    inset -20px 20px 100px #203;
+    border: none;
+    background-color: #000;
+}
+
+button:hover:not(:disabled){
     box-shadow: 0 0 5px #fff,
     0 0 10px #aff,
     0 0 15px #faf,
@@ -166,29 +170,21 @@ button:hover{
 }
 
 @keyframes fade {
-    0%{
-        opacity: 0;
-    }
-    100%{
-        opacity: 1;
-    }
+    0%{opacity: 0;}
+    100%{opacity: 1;}
+}
+@keyframes fade-out {
+    0%{opacity: 1;}
+    100%{opacity: 0;}
 }
 
 .fade{
     animation: fade 1s;
 }
 
-@keyframes fade-out {
-    0%{
-        opacity: 1;
-    }
-    100%{
-        opacity: 0;
-    }
-}
 
 .fade-out{
-    animation: fade-out 1s;
+    animation: fade 1s reverse;
     opacity: 0;
 }
 
@@ -208,6 +204,8 @@ button:hover{
 .font-black-ops-one{font-family: 'Black Ops One', cursive;}
 .font-bebas-neue{font-family: 'Bebas Neue', cursive;}
 .font-major-mono-display{font-family: 'Major Mono Display', monospace;}
+.font-poppins{font-family: 'Poppins', sans-serif;}
+.font-josefin-sans{font-family: 'Josefin Sans', sans-serif;}
 
 .l2{
     background: linear-gradient(-45deg, #001, #102);
@@ -231,14 +229,18 @@ button:disabled, input:disabled, textarea:disabled, select:disabled{
     0 0 20px #f00,
     0 0 30px #f00;
 }
+.shar22{
+    box-shadow: 0 0 10px #08f,
+    0 0 30px #08f,
+    inset 0 0 10px #08f;
+    text-shadow: 0 0 10px #08f,
+    0 0 20px #08f,
+    0 0 30px #08f;
+}
 
 @keyframes up {
-    0%{
-        transform: translateY(100px);
-    }
-    100%{
-        transform: translateY(0);
-    }
+    0%{transform: translateY(100px);}
+    100%{transform: translateY(0);}
 }
 
 .up{
@@ -246,12 +248,8 @@ button:disabled, input:disabled, textarea:disabled, select:disabled{
 }
 
 @keyframes down {
-    0%{
-        transform: translateY(0);
-    }
-    100%{
-        transform: translateY(100px);
-    }
+    0%{transform: translateY(0);}
+    100%{transform: translateY(100px);}
 }
 
 .down{
@@ -264,19 +262,93 @@ button:disabled, input:disabled, textarea:disabled, select:disabled{
 }
 
 @keyframes scale-up{
-    0%{
-        transform: scale(0);
-    }
-    100%{
-        transform: scale(1);
-    }
+    0%{transform: scale(0);}
+    100%{transform: scale(1);}
 }
 
 @keyframes scale-down{
+    0%{transform: scale(1);}
+    100%{transform: scale(0);}
+}
+
+@keyframes matched {
     0%{
-        transform: scale(1);
+        background: #fff0;
+        color: #fff;
     }
     100%{
-        transform: scale(0);
+        background: #ffff;
+        color: #000;
     }
+}
+
+.match:not(.matched){
+    @apply bg-[#fff0] text-white hover:bg-[#fff2];
+}
+.match.matched{
+    @apply bg-white text-black hover:bg-[#fffa];
+}
+
+.nav-menu{
+    @apply p-2 rounded-md text-lg w-48 select-none cursor-pointer text-center font-bold shar3 font-black-han-sans;
+    transition: all 0.3s ease-in-out;
+}
+
+.nav-menu:not(:disabled):hover{
+    box-shadow: 8px -8px 10px #faf,
+    0 10px 20px #aff,
+    -8px -8px 10px #ffa,
+    inset 0 0 10px #fff;
+    transform: scale(1.1);
+}
+
+.nav-menu.active{
+    background-color: #fff7;
+}
+
+.nav-menu.disabled{
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.shar3{
+    box-shadow: 0 0 10px #fff,
+    0 0 20px #fff,
+    inset 0 0 10px #fff;
+}
+
+.shar4{
+    box-shadow: 0 0 10px #fff,
+    0 0 20px #fff;
+}
+
+.shar5{
+    box-shadow: 0 0 10px #7ff,
+    0 0 20px #f7f,
+    0 0 30px #ff7,
+    inset 0 0 10px #fffa;
+}
+
+@keyframes page-up{
+    0%{transform: translateY(-100px) rotate(-5deg); opacity: 0;}
+    100%{transform: translateY(0) rotate(0deg); opacity: 1;}
+}
+
+@keyframes page-down{
+    0%{transform: translateY(0) rotate(0); opacity: 1;}
+    100%{transform: translateY(100px) rotate(5deg); opacity: 0;}
+}
+
+::-webkit-scrollbar {width: 9px;}
+::-webkit-scrollbar-track {background: #f1f1f1;}
+::-webkit-scrollbar-thumb {background: #888;}
+::-webkit-scrollbar-thumb:hover {background: #555;}
+
+.sha{
+    box-shadow: 2px 0 5px #fff,
+    0 3px 10px #aff,
+    4px 0 15px #faf,
+    0 5px 20px #dbf,
+    inset -20px 20px 100px #203;
+    border: none;
 }
