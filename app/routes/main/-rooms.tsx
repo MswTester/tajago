@@ -6,10 +6,11 @@ import { Socket } from "socket.io-client";
 export default function RoomState(props:socketProps){
     const socket = props.socket;
     const dispatch = useDispatch();
+    const user:IUser = useSelector((state:any) => state.user)
     const mainRef = useRef<HTMLDivElement>(null)
     const [once, setOnce] = useState<boolean>(false)
-    const homeState = useSelector((state:any) => state.homeState)
-    const isFetching = useSelector((state:any) => state.isFetching)
+    const homeState:string = useSelector((state:any) => state.homeState)
+    const isFetching:boolean = useSelector((state:any) => state.isFetching)
     const [rooms, setRooms] = useState<{[key:string]:IRoom}>({})
     const [search, setSearch] = useState<string>('')
     const [onCreate, setOnCreate] = useState<boolean>(false)
@@ -20,8 +21,13 @@ export default function RoomState(props:socketProps){
             if(mainRef.current) mainRef.current.style.animation = 'page-up 0.3s ease-in-out'
             socket.emit('get-rooms')
 
+            dispatch({type:'room', value:{}})
+            dispatch({type:'roomId', value:''})
+
+            let _rooms:{[key:string]:IRoom} = {}
             socket.on('get-rooms', (rooms:{[key:string]:IRoom}) => {
                 setRooms(rooms)
+                _rooms = rooms
             })
 
             socket.on('create', (room:IRoom) => {
@@ -31,14 +37,16 @@ export default function RoomState(props:socketProps){
                 dispatch({type:'homeState', value:'room'})
             })
 
-            socket.on('join', (room:IRoom) => {
-                dispatch({type:'roomId', value:socket.id})
+            socket.on('join', (roomId:string, room:IRoom) => {
+                dispatch({type:'roomId', value:roomId})
                 dispatch({type:'room', value:room})
                 dispatch({type:'homeState', value:'room'})
             })
 
             return () => {
-                socket.off('rooms')
+                socket.off('get-rooms')
+                socket.off('create')
+                socket.off('join')
             }
         }
     }, [once])
@@ -57,13 +65,12 @@ export default function RoomState(props:socketProps){
             </div>
             <div className="w-full h-full fle-1 flex flex-col justify-start items-items gap-2">
                 {Object.values(rooms).filter(room => room.name.includes(search)).map((room:IRoom, i:number) => {
+                    const roomId = Object.keys(rooms).find(key => rooms[key] === room)
                     return <div key={i} className="w-full flex flex-row justify-between items-center p-4 rounded-md shar3">
                         <div className="flex-1 text-xl">{room.name}</div>
                         <div className="flex-1 text-lg">{room.players.length}/2</div>
                         <button disabled={isFetching} className="rounded-md p-3 pr-10 pl-10" onClick={e => {
-                            dispatch({type:'roomId', value:Object.keys(rooms).find(key => rooms[key] === room)})
-                            dispatch({type:'room', value:room})
-                            dispatch({type:'homeState', value:'room'})
+                            socket.emit('join', roomId, user.username, user.rating)
                         }}>Join</button>
                     </div>
                 })}

@@ -30,7 +30,6 @@ import { createServer } from "http";
 import { Server, Socket } from "socket.io";
 import { Game, Player } from "./game";
 
-
 const app = express();
 const server = createServer(app);
 
@@ -45,6 +44,7 @@ const io = new Server(server, {
 });
 
 const port = process.env.PORT || 8080;
+const maxTimeout:number = 100000; // 100s
 
 app.get("/", (req, res) => {
   res.send("server is running");
@@ -61,16 +61,20 @@ const InRange = (a:number, b:number, range:number) => {
 setInterval(() => {
   Object.keys(matches).forEach((key:string) => {
     const match = matches[key]
-    if(Date.now() - match.time > 10000){
+    if(!match) return
+    if(Date.now() - match.time > maxTimeout){
       delete matches[key]
+      io.to(key).emit('cancel-match')
+      io.to(key).emit('error', 'Matchmaking timeout')
     } else {
       Object.keys(matches).forEach((key2:string) => {
         const match2 = matches[key2]
         if(key != key2 && InRange(match.rating, match2.rating, Date.now() - match.time)){
+          const arr:IMatch[] = [matches[key], matches[key2]]
           delete matches[key]
           delete matches[key2]
           const roomID = Math.random().toString(36).substring(2, 15)
-          games.push(new Game(roomID, rooms[key].players.map(v => new Player(v.socketID, v.name, v.rating))))
+          games.push(new Game(roomID, arr.map(v => new Player(v.roomID, v.name, v.rating))))
           io.to(key).emit('match-found', roomID)
           io.to(key2).emit('match-found', roomID)
           io.to(key).socketsJoin(roomID)
@@ -79,10 +83,16 @@ setInterval(() => {
       })
     }
   })
+
+  games.forEach((game) => {
+    if(game.status == 'playing'){
+      const tick = game.tick()
+    }
+  })
 }, 1000/30)
 
 io.on("connection", (socket:Socket) => {
-  console.log("a user connected");
+  console.log("a user connected:", socket.id);
   socket.on('online', (data:string) => {
     onlines[socket.id] = data
   })
@@ -90,9 +100,9 @@ io.on("connection", (socket:Socket) => {
   socket.on('match', (data:IStat) => {
     matches[socket.id] = {
       roomID: data.id,
+      name: data.name,
       rating: data.rating,
       time: Date.now(),
-      name: data.name
     }
     socket.emit('match')
   })
@@ -102,8 +112,13 @@ io.on("connection", (socket:Socket) => {
     socket.emit('cancel-match')
   })
 
-  socket.on('match-ready', (roomID:string) => {
-    
+  socket.on('game-ready', (roomID:string) => {
+    const game = games.find(game => game.roomID == roomID)
+    if(game){
+      if(game.ready(socket.id)){
+        io.to(roomID).emit('start')
+      }
+    }
   })
 
   socket.on('create', (name:string, nick:string, pri:boolean, rating:number) => {
@@ -119,8 +134,8 @@ io.on("connection", (socket:Socket) => {
       status: 'waiting'
     }
     socket.join(socket.id)
-    console.log(rooms)
     socket.emit('create', rooms[socket.id])
+    socket.broadcast.emit('get-rooms', rooms)
   })
 
   socket.on('join', (roomId:string, name:string, rating:number) => {
@@ -131,7 +146,8 @@ io.on("connection", (socket:Socket) => {
       })
       socket.join(roomId)
       io.to(roomId).emit('update', rooms[roomId])
-      socket.emit('join', rooms[roomId])
+      socket.emit('join', roomId, rooms[roomId])
+      socket.broadcast.emit('get-rooms', rooms)
     }
   })
 
@@ -140,14 +156,24 @@ io.on("connection", (socket:Socket) => {
     io.to(roomID).emit('start')
   })
 
-  socket.on('leave', (data:string) => {
-    if(rooms[data]){
-      rooms[data].players = rooms[data].players.filter((player) => player.socketID != socket.id)
-      socket.leave(data)
-      socket.emit('roomDestroyed')
-      socket.emit('get-rooms', rooms)
-      io.to(data).emit('update', rooms[data])
+  socket.on('leave', (roomId:string) => {
+    if(rooms[roomId]){
+      if(roomId == socket.id){
+        io.to(roomId).emit('roomDestroyed')
+        io.to(roomId).socketsLeave(roomId)
+        delete rooms[roomId]
+      } else {
+        socket.emit('roomDestroyed')
+        socket.leave(roomId)
+        rooms[roomId].players = rooms[roomId].players.filter((player) => player.socketID != socket.id)
+        io.to(roomId).emit('update', rooms[roomId])
+      }
+      socket.broadcast.emit('get-rooms', rooms)
     }
+  })
+
+  socket.on('chat', (roomID:string, name:string, chat:string) => {
+    io.to(roomID).emit('chat', [name, chat])
   })
 
   socket.on('get-rooms', () => {
@@ -155,13 +181,19 @@ io.on("connection", (socket:Socket) => {
   })
 
   socket.on("disconnect", () => {
-    console.log("user disconnected");
+    console.log("user disconnected:", socket.id);
     delete onlines[socket.id]
     if(rooms[socket.id]){
-      rooms[socket.id].players.forEach((player) => {
-        io.to(player.socketID).emit('roomDestroyed')
-      })
+      io.to(socket.id).emit('roomDestroyed')
+      io.to(socket.id).socketsLeave(socket.id)
       delete rooms[socket.id]
+      socket.broadcast.emit('get-rooms', rooms)
+    }
+    if(Object.values(rooms).find(room => room.players.find(player => player.socketID == socket.id))){
+      Object.keys(rooms).forEach((key) => {
+        rooms[key].players = rooms[key].players.filter(player => player.socketID != socket.id)
+        io.to(key).emit('update', rooms[key])
+      })
     }
     if(matches[socket.id]){
       delete matches[socket.id]

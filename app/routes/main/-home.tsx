@@ -43,7 +43,7 @@ export default function Home(props:socketProps) {
             
             const particleLoop = setInterval(() => {
                 if(document.hidden) return
-                const dis = Math.random() * 0.5 + 0.5
+                const dis = Math.random() * 0.8 + 0.4
                 const obj = new Obj(
                     [Math.random() * width, height + 20],
                     [dis*10, dis*10],
@@ -58,7 +58,7 @@ export default function Home(props:socketProps) {
                 obj.customData['speed'] = dis/10
                 obj.setGlow(20, 5, 5, 0.05)
                 bObjs.unshift(obj)
-            }, 200);
+            }, 300);
 
             const updateLoop = setInterval(() => {
                 if(document.hidden) return
@@ -88,12 +88,13 @@ export default function Home(props:socketProps) {
     useEffect(() => {
         setTimeout(() => {
             setState(homeState)
-        }, 290);
+        }, 280);
     }, [homeState])
 
+    const background = `linear-gradient(85deg, #001, #205, #001)`
     return <>
         <div className="w-full h-full flex flex-col justify-center items-center fade">
-            <WebCanvas idx={-1} objs={backObjs} bg="linear-gradient(85deg, #001, #205, #001)"/>
+            <WebCanvas idx={-1} objs={backObjs} bg={background} />
             {state === 'play' ? <PlayState {...props} />:
             state === 'settings' ? <SettingState {...props} />:
             state === 'rank' ? <RankState {...props} />:

@@ -12,6 +12,8 @@ export default function PlayState(props:socketProps) {
     const [once, setOnce] = useState<boolean>(false)
     const socket:Socket = props.socket
     const isMatching:boolean = useSelector((state:any) => state.isMatching)
+    const [matchFound, setMatchFound] = useState<boolean>(false)
+    const backShadowRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => setOnce(true), [])
     useEffect(() => {
@@ -61,11 +63,27 @@ export default function PlayState(props:socketProps) {
                     }, {once: true})
                 }
             })
+
+            socket.on('match-found', () => {
+                setMatchFound(true)
+                setTimeout(() => {
+                    dispatch({type:'page', value:'play'})
+                }, 2000);
+                if(matchRef.current){
+                    matchRef.current.style.animation = 'match-found 0.5s ease-in-out'
+                    matchRef.current.classList.add('match-found')
+                }
+                if(backShadowRef.current){
+                    backShadowRef.current.style.animation = 'back-shadow 0.5s ease-in-out'
+                }
+
+            })
             
             return () => {
                 clearInterval(updateLoop)
                 socket.off('match')
                 socket.off('cancel-match')
+                socket.off('match-found')
             }
         }
     }, [once])
@@ -89,7 +107,8 @@ export default function PlayState(props:socketProps) {
     return <div className="w-full h-full flex flex-col justify-center items-center">
         <div className="match w-96 h-96 rounded-full flex flex-col justify-center items-center gap-10 select-none cursor-pointer transition" ref={matchRef} onClick={handleMatch}>
             <div className="font-anton font-bold text-lg">{user.rating} R</div>
-            <div className="text-4xl font-anton font-bold">{isMatching ? "Finding Match..." : "Match"}</div>
+            <div className="text-4xl font-anton font-bold">{isMatching ? matchFound ? "Match Found!" : "Finding Match..." : "Match"}</div>
         </div>
+        <div className="absolute top-0 left-0 w-full h-full pointer-events-none" ref={backShadowRef}></div>
     </div>
 }

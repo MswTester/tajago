@@ -32,8 +32,13 @@ export default function Main() {
             } catch(err){
                 dispatch({type:'error', value:'Failed to connect to socket server'})
             }
+
+            sock.on('error', (err:string) => {
+                dispatch({type:'error', value:err})
+            })
             return () => {
                 sock.disconnect()
+                sock.close()
             }
         }
     }, [once])

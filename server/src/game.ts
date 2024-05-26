@@ -47,11 +47,9 @@ export class Game{
 
     checkDeath(){
         this.players.forEach(player => {
-            player.queue.find(block => {
-                if(Date.now() - block.delta > 15000){
-
-                }
-            })
+            if(player.queue.find(block => Date.now() - block.delta > 15000)){
+                // Player is dead
+            }
         })
     }
 
