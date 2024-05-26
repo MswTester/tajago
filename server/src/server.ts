@@ -74,7 +74,7 @@ setInterval(() => {
           delete matches[key]
           delete matches[key2]
           const roomID = Math.random().toString(36).substring(2, 15)
-          games.push(new Game(roomID, arr.map(v => new Player(v.roomID, v.name, v.rating))))
+          games.push(new Game(roomID, arr.map(v => new Player(v.roomID, v.name, v.rating)), true))
           io.to(key).emit('match-found', roomID)
           io.to(key2).emit('match-found', roomID)
           io.to(key).socketsJoin(roomID)
@@ -85,9 +85,11 @@ setInterval(() => {
   })
 
   games.forEach((game) => {
-    if(game.status == 'playing'){
-      const tick = game.tick()
-    }
+    const tick = game.tick()
+    Object.keys(tick).forEach((key) => {
+      const value = tick[key];
+      io.to(game.roomID).emit(key, value)
+    })
   })
 }, 1000/30)
 
@@ -140,6 +142,9 @@ io.on("connection", (socket:Socket) => {
 
   socket.on('join', (roomId:string, name:string, rating:number) => {
     if(rooms[roomId]){
+      if(rooms[roomId].players.length >= 2){
+        socket.emit('error', 'Room is full')
+      }
       rooms[roomId].players.push({
         socketID: socket.id,
         name, rating
@@ -197,6 +202,12 @@ io.on("connection", (socket:Socket) => {
     }
     if(matches[socket.id]){
       delete matches[socket.id]
+    }
+    const game = games.find(game => game.players.find(player => player.socketID == socket.id))
+    if(game){
+      io.to(game.roomID).emit('gameFinished', game.isRank, game.players[0].rating)
+      io.to(game.roomID).socketsLeave(game.roomID)
+      games = games.filter(g => g != game)
     }
   });
 });

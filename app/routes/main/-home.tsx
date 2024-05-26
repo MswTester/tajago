@@ -2,8 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import WebCanvas from "../components/-webCanvas";
 import Obj from "~/data/obj";
-import { useInterval, useWindowSize } from "usehooks-ts";
-import { shadowToStyle } from "~/data/utils";
 import PlayState from "./-play";
 import { Socket } from "socket.io-client";
 import Navbar from "./-navbar";
@@ -23,6 +21,7 @@ export default function Home(props:socketProps) {
     const [once, setOnce] = useState<boolean>(false)
     const [backObjs, setBackObjs] = useState<Obj[]>([])
     const [cursorPos, setCursorPos] = useState<number[]>([0, 0])
+    const homeRef = useRef<HTMLDivElement>(null)
 
     const handleMouseMove = (e:MouseEvent) => {
         setCursorPos([e.clientX, e.clientY])
@@ -40,7 +39,7 @@ export default function Home(props:socketProps) {
                 height = window.innerHeight
             }
             window.addEventListener('resize', resize)
-            
+
             const particleLoop = setInterval(() => {
                 if(document.hidden) return
                 const dis = Math.random() * 0.8 + 0.4
@@ -92,20 +91,18 @@ export default function Home(props:socketProps) {
     }, [homeState])
 
     const background = `linear-gradient(85deg, #001, #205, #001)`
-    return <>
-        <div className="w-full h-full flex flex-col justify-center items-center fade">
-            <WebCanvas idx={-1} objs={backObjs} bg={background} />
-            {state === 'play' ? <PlayState {...props} />:
-            state === 'settings' ? <SettingState {...props} />:
-            state === 'rank' ? <RankState {...props} />:
-            state === 'rooms' ? <RoomState {...props} />:
-            state === 'leaderboard' ? <LeaderboardState {...props} />:
-            state === 'room' ? <InRoom {...props} />:
-            null}
-            {state !== 'room' && <Navbar />}
-            <div className="fixed top-0 left-0 w-full h-full fade pointer-events-none">
-                <div className="shar fixed" style={{left:`${cursorPos[0]}px`, top:`${cursorPos[1]}px`}}></div>
-            </div>
+    return <div className="w-full h-full flex flex-col justify-center items-center fade" ref={homeRef}>
+        <WebCanvas idx={-1} objs={backObjs} bg={background} />
+        {state === 'play' ? <PlayState {...props} homeRef={homeRef} />:
+        state === 'settings' ? <SettingState {...props} />:
+        state === 'rank' ? <RankState {...props} />:
+        state === 'rooms' ? <RoomState {...props} />:
+        state === 'leaderboard' ? <LeaderboardState {...props} />:
+        state === 'room' ? <InRoom {...props} />:
+        null}
+        {state !== 'room' && <Navbar />}
+        <div className="fixed top-0 left-0 w-full h-full fade pointer-events-none">
+            <div className="shar fixed" style={{left:`${cursorPos[0]}px`, top:`${cursorPos[1]}px`}}></div>
         </div>
-    </>;
+    </div>;
 }

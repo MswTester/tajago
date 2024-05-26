@@ -69,7 +69,8 @@ export default function RoomState(props:socketProps){
                     return <div key={i} className="w-full flex flex-row justify-between items-center p-4 rounded-md shar3">
                         <div className="flex-1 text-xl">{room.name}</div>
                         <div className="flex-1 text-lg">{room.players.length}/2</div>
-                        <button disabled={isFetching} className="rounded-md p-3 pr-10 pl-10" onClick={e => {
+                        <button disabled={isFetching || room.players.length >= 2} className="rounded-md p-3 pr-10 pl-10" onClick={e => {
+                            if(room.players.length >= 2) return dispatch({type:'error', value:'Room is full'})
                             socket.emit('join', roomId, user.username, user.rating)
                         }}>Join</button>
                     </div>

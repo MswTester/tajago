@@ -5,8 +5,10 @@ import { useEffect, useState } from "react";
 import Home from "./main/-home";
 import { io, Socket } from "socket.io-client";
 import Alert from "./components/-alert";
+import Game from "./play/-game";
 
-const url = process.env.NODE_ENV === 'development' ? 'http://127.0.0.1:8080' : 'https://tajago.onrender.com/'
+export const isDev:boolean = process.env.NODE_ENV === 'development'
+const url = isDev ? 'http://127.0.0.1:8080' : 'https://tajago.onrender.com/'
 
 export default function Main() {
     const dispatch = useDispatch();
@@ -89,6 +91,7 @@ export default function Main() {
         socket != null ? (
             page === 'login' ? <Login /> :
             page === 'home' ? <Home socket={socket} setSocket={setSocket} /> :
+            page === 'play' ? <Game socket={socket} setSocket={setSocket} />:
             <div className="w-full h-full flex justify-center items-center">Page not found</div>
         ): <div className="w-full h-full flex justify-end items-end text-sm">Connecting to server...</div>
     }

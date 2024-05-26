@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux"
 import { Socket } from "socket.io-client"
 import { shadowToStyle } from "~/data/utils"
 
-export default function PlayState(props:socketProps) {
+export default function PlayState(props:{socket:Socket;homeRef:React.RefObject<HTMLDivElement>}) {
     const dispatch = useDispatch()
     const user:IUser = useSelector((state:any) => state.user)
     const isFetching:boolean = useSelector((state:any) => state.isFetching)
@@ -68,15 +68,17 @@ export default function PlayState(props:socketProps) {
                 setMatchFound(true)
                 setTimeout(() => {
                     dispatch({type:'page', value:'play'})
-                }, 2000);
+                }, 1500);
+                setTimeout(() => {
+                    if(props.homeRef.current) props.homeRef.current.style.animation = 'fade-out 0.55s ease-in-out'
+                }, 1000);
                 if(matchRef.current){
                     matchRef.current.style.animation = 'match-found 0.5s ease-in-out'
                     matchRef.current.classList.add('match-found')
                 }
                 if(backShadowRef.current){
-                    backShadowRef.current.style.animation = 'back-shadow 0.5s ease-in-out'
+                    backShadowRef.current.style.animation = 'back-shadow 1s ease-in-out'
                 }
-
             })
             
             return () => {
@@ -94,6 +96,7 @@ export default function PlayState(props:socketProps) {
 
     const handleMatch = () => {
         if(isFetching) return;
+        if(matchFound) return;
         if(isMatching) {
             socket.emit('cancel-match')
         } else {

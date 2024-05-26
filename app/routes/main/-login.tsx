@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { checkNick, sha256 } from "~/data/utils";
 import Register from "./-register";
+import { isDev } from "../-main";
 
 export default function Login() {
     const dispatch = useDispatch()
@@ -27,7 +28,9 @@ export default function Login() {
         if (once) {
             setTimeout(() => {
                 setLpage('login')
-            }, 3200);
+            }, (isDev ? 10 : 3200));
+
+            if(isDev) TryLogin('maestro', 'maestro')
 
             document.addEventListener('mousemove', handleMouseMove)
 
@@ -54,6 +57,54 @@ export default function Login() {
         }
     }, [lpage])
 
+    const EnterUsername = async () => {
+        if(checkNick(username)){
+            dispatch({type:'isFetching', value:true})
+            const res = await fetch('/controller/col/users/type/get', {
+                method:'POST',
+                headers:{'Content-Type':'application/json'},
+                body:JSON.stringify({username})
+            })
+            const json = await res.json()
+            dispatch({type:'isFetching', value:false})
+            if(json.username){
+                setOnPass(true)
+                setPassword("")
+                passwordRef.current?.focus()
+            } else {
+                dispatch({type:'error', value:'Invalid username'});
+            }
+        } else {
+            dispatch({type:'error', value:'Username must be 3-12 characters long and contain only letters, numbers'});
+        }
+    }
+
+    const TryLogin = async (username:string, password:string) => {
+        dispatch({type:'isFetching', value:true})
+        const res = await fetch('/controller/col/users/type/get', {
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({username, password:sha256(password)})
+        })
+        const json = await res.json()
+        dispatch({type:'isFetching', value:false})
+        if(json.username){
+            if(downRef.current) downRef.current.style.animation = 'inp-down 1s ease-in-out'
+            if(mainRef.current) mainRef.current.style.animation = 'main-down 1s ease-in-out'
+            if(backRef.current) backRef.current.style.animation = 'fade-out 1s ease-in-out'
+            setTimeout(() => {
+                successLogin(json)
+            }, 950);
+        } else {
+            dispatch({type:'error', value:'Invalid password'});
+        }
+    }
+
+    const successLogin = (json:IUser) => {
+        dispatch({type:'user', value:json})
+        dispatch({type:'page', value:'home'})
+    }
+
     return (
         lpage === 'start' ? <div className="l1 flex flex-col gap-10 justify-center items-center">
             <img width={300} height={300} src="/icon.png" alt="" />
@@ -71,56 +122,16 @@ export default function Login() {
                 <input ref={usernameRef} disabled={isFetching} className="w-96 p-2 login-input bg-[#000] focus:outline-none rounded-lg" type="text" placeholder="Username"
                 value={username} onChange={(e) => setUsername(e.target.value)} onKeyDown={async e => {
                     if (e.key === 'Enter') {
-                        if(checkNick(username)){
-                            dispatch({type:'isFetching', value:true})
-                            const res = await fetch('/controller/col/users/type/get', {
-                                method:'POST',
-                                headers:{'Content-Type':'application/json'},
-                                body:JSON.stringify({username})
-                            })
-                            const json = await res.json()
-                            dispatch({type:'isFetching', value:false})
-                            if(json.username){
-                                setOnPass(true)
-                                setPassword("")
-                                passwordRef.current?.focus()
-                            } else {
-                                dispatch({type:'error', value:'Invalid username'});
-                                (e.target as HTMLElement).focus()
-                            }
-                        } else {
-                            dispatch({type:'error', value:'Username must be 3-12 characters long and contain only letters, numbers'});
-                            (e.target as HTMLElement).focus()
-                        }
+                        EnterUsername()
                     }
                 }} /> :
                 <input ref={passwordRef} disabled={isFetching} className="w-96 p-2 login-input bg-[#000] focus:outline-none rounded-lg" type="password" placeholder="Password"
                 value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={async e => {
                     if (e.key === 'Enter') {
                         if(onPass){
-                            dispatch({type:'isFetching', value:true})
-                            const res = await fetch('/controller/col/users/type/get', {
-                                method:'POST',
-                                headers:{'Content-Type':'application/json'},
-                                body:JSON.stringify({username, password:sha256(password)})
-                            })
-                            const json = await res.json()
-                            dispatch({type:'isFetching', value:false})
-                            if(json.username){
-                                if(downRef.current) downRef.current.style.animation = 'inp-down 1s ease-in-out'
-                                if(mainRef.current) mainRef.current.style.animation = 'main-down 1s ease-in-out'
-                                if(backRef.current) backRef.current.style.animation = 'fade-out 1s ease-in-out'
-                                setTimeout(() => {
-                                    dispatch({type:'user', value:json})
-                                    dispatch({type:'page', value:'home'})
-                                }, 950);
-                            } else {
-                                dispatch({type:'error', value:'Invalid password'});
-                                (e.target as HTMLElement).focus()
-                            }
+                            TryLogin(username, password)
                         } else {
                             dispatch({type:'error', value:'Enter username first'});
-                            (e.target as HTMLElement).focus()
                         }
                     }
                 }} /> }
