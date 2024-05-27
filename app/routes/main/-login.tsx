@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { checkNick, sha256 } from "~/data/utils";
 import Register from "./-register";
 import { isDev } from "../-main";
+// const isDev = false
 
 export default function Login() {
     const dispatch = useDispatch()

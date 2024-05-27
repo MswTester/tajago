@@ -43,6 +43,7 @@ interface IStat{
 
 interface IMatch{
     roomID:string;
+    userID:string;
     rating:number;
     name:string; // username
     time:number; // Date.now()

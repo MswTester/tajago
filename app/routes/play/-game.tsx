@@ -27,6 +27,7 @@ export default function Game(props:socketProps) {
     useEffect(() => setOnce(true), [])
     useEffect(() => {
         if(once){
+            console.log(roomId)
             socket.emit('game-ready', roomId)
             let width = window.innerWidth
             let height = window.innerHeight
@@ -92,6 +93,7 @@ export default function Game(props:socketProps) {
             }, 1000/60)
 
             socket.on('start', () => {
+                console.log('Game Start')
             })
 
             socket.on('game-players', (players:Player[]) => {
@@ -125,7 +127,11 @@ export default function Game(props:socketProps) {
         <WebCanvas idx={-1} objs={objs} bg="linear-gradient(86deg, #201, #402, #201)" />
         {/* PlayBox */}
         <div className="rounded-lg font-bold text-lg flex flex-col justify-center" style={{width:`${size/2}px`, height:`${size-80}px`}}>
-            <div className="w-full h-full rounded-t-lg" style={{boxShadow:'inset 0 0 20px #f7f'}}></div>
+            <div className="w-full h-full rounded-t-lg" style={{boxShadow:'inset 0 0 20px #f7f'}}>
+                {myPlayer ? myPlayer.queue.map((v, i) => {
+                    return <div key={i} className="w-full h-[20%] flex justify-center items-center text-center" style={{transform:`translateY(-100%)`}}>{v.word}</div>
+                }) : null}
+            </div>
             <input type="text" name="" id="" className="w-full rounded-b-lg p-2 text-center" value={input} onChange={e => setInput(e.target.value)} placeholder="Type Here" />
         </div>
         <div ref={circleRef} className="absolute pointer-events-none rounded-full" style={{

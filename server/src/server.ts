@@ -6,6 +6,7 @@ export interface IStat{
 
 interface IMatch{
   roomID:string;
+  userID:string;
   rating:number;
   name:string; // username
   time:number; // Date.now()
@@ -101,7 +102,8 @@ io.on("connection", (socket:Socket) => {
 
   socket.on('match', (data:IStat) => {
     matches[socket.id] = {
-      roomID: data.id,
+      roomID: socket.id,
+      userID: data.id,
       name: data.name,
       rating: data.rating,
       time: Date.now(),
@@ -157,6 +159,10 @@ io.on("connection", (socket:Socket) => {
   })
 
   socket.on('start', (roomID:string) => {
+    if(rooms[roomID].players.length < 2){
+      socket.emit('error', 'Room is not full')
+      return
+    }
     games.push(new Game(roomID, rooms[roomID].players.map(v => new Player(v.socketID, v.name, v.rating))))
     io.to(roomID).emit('start')
   })

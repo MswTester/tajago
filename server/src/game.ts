@@ -21,6 +21,7 @@ export class Game{
                 player.ready = true;
             }
         })
+        console.log(this.players)
         if(this.players.every(player => player.ready)){
             this.begin();
             return true;
@@ -66,6 +67,8 @@ export class Game{
         const lose_player = this.players.find(player => player.socketID == socketID);
         win_player.score += 1;
         this.status = 'ready';
+        win_player.init();
+        lose_player.init();
     }
 
     checkAttack():boolean{
@@ -137,6 +140,13 @@ export class Player{
         this.score = 0;
         this.combo = 0;
         this.queue = [];
+        this.attackQueue = [];
+    }
+
+    init(){
+        this.combo = 0;
+        this.queue = [];
+        this.attackQueue = [];
     }
 }
 

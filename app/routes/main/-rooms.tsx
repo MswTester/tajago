@@ -114,7 +114,7 @@ function CreateRoom (props:{socket:Socket;setOnCreate:(value:boolean) => void}) 
             <input className="rounded-md p-2 w-full" type="text" name="" id="" placeholder="Room Name" value={name} onChange={e => setName(e.target.value)} />
             <div className="w-full flex flex-row justify-center items-center gap-2">
                 <div className="w-4 h-4 rounded-full sha flex justify-center items-center cursor-pointer" onClick={e => setPrivateRoom(!privateRoom)}>
-                    {privateRoom && <div className="w-3 h-3 rounded-full bg-slate-500"></div>}
+                    {privateRoom && <div className="w-3 h-3 rounded-full bg-[#fff]" style={{boxShadow:'0 0 20px #fff'}}></div>}
                 </div>
                 <div className="select-none">Private</div>
             </div>

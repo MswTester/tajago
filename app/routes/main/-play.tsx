@@ -64,9 +64,10 @@ export default function PlayState(props:{socket:Socket;homeRef:React.RefObject<H
                 }
             })
 
-            socket.on('match-found', () => {
+            socket.on('match-found', (roomId:string) => {
                 setMatchFound(true)
                 setTimeout(() => {
+                    dispatch({type:'roomId', value:roomId})
                     dispatch({type:'page', value:'play'})
                 }, 1500);
                 setTimeout(() => {
@@ -102,6 +103,7 @@ export default function PlayState(props:{socket:Socket;homeRef:React.RefObject<H
         } else {
             socket.emit('match', {
                 id: user.id,
+                name: user.username,
                 rating: user.rating
             })
         }
