@@ -60,7 +60,7 @@ export function checkPass(str:string):boolean{
 
 
 export function shadowToStyle(shadows:IShadow[]):string{
-  return shadows.map(shadow => `${shadow.distance[0]}px ${shadow.distance[1]}px ${shadow.blur}px rgba(${shadow.color.join(',')})`).join(',')
+  return shadows.map(shadow => `${shadow.inset ? "inset" : ""} ${shadow.distance[0]}px ${shadow.distance[1]}px ${shadow.blur}px rgba(${shadow.color.join(',')})`).join(',')
 }
 
 export function seedRandomInt(seed:number, min:number, max:number):number{

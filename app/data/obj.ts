@@ -62,7 +62,7 @@ export default class Obj{
         return shadowDatas;
     }
 
-    getStyle(){
+    getStyle():React.CSSProperties{
         let shadowDatas:[number, vec4][] = this.calculateShadows()
         const startColor:vec4 = shadowDatas[0][1]
         const shadows = shadowDatas.map(data => `0 0 ${data[0]}px rgba(${data[1][0]}, ${data[1][1]}, ${data[1][2]}, ${data[1][3]})`).join(', ')
@@ -74,7 +74,7 @@ export default class Obj{
             transform:`translate(${this.pivot[0] * 100}%, ${this.pivot[1] * 100}%) rotate(${this.rotation}deg) scale(${this.scale[0]}, ${this.scale[1]})`,
             backgroundColor:this.glow ? `rgba(${startColor[0]}, ${startColor[1]}, ${startColor[2]}, ${startColor[3]})` : `rgba(${this.color[0]}, ${this.color[1]}, ${this.color[2]}, ${this.color[3]})`,
             borderRadius:`${this.rounded}px`,
-            boxShadow:this.glow ? shadows : 'none'
+            boxShadow:this.glow ? shadows : 'none',
         }
     }
 }

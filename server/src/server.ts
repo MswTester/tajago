@@ -53,7 +53,7 @@ app.get("/", (req, res) => {
 let onlines: {[key:string]:string} = {} // socketID:userID
 let rooms: {[key:string]:IRoom} = {} // socketID(roomID) : [socketID]
 let matches: {[key:string]:IMatch} = {} // socketID : IMatch
-let games: Game[] = [] // IGame[]
+let games: Game[] = [] // Game[]
 
 const InRange = (a:number, b:number, range:number) => {
   return Math.abs(a - b) < range
@@ -88,7 +88,7 @@ setInterval(() => {
     const tick = game.tick()
     Object.keys(tick).forEach((key) => {
       const value = tick[key];
-      io.to(game.roomID).emit(key, value)
+      io.to(game.roomID).emit(`game-${key}`, value)
     })
   })
 }, 1000/30)

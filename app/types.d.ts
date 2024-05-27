@@ -25,6 +25,7 @@ interface IShadow{
     distance:vec2;
     blur:number;
     color:vec4;
+    inset?:boolean;
 }
 
 interface socketProps{
