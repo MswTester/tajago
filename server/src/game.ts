@@ -4,6 +4,9 @@ export class Game{
     isRank:boolean; // The rank status of the game
     status:string; // waiting, ready, playing
     seed:number; // The seed of the game
+
+    spawnDelay:number = 3000; // The delay between spawns
+    maxBlocks:number = 10; // The maximum number of blocks
     
     spawned:number; // The time of the last spawn
     lastMotion:[number, number] = [0, 0]; // The [time, idx] of the last motion
@@ -21,7 +24,6 @@ export class Game{
                 player.ready = true;
             }
         })
-        console.log(this.players)
         if(this.players.every(player => player.ready)){
             this.begin();
             return true;
@@ -41,7 +43,7 @@ export class Game{
     }
 
     checkSpawn():boolean{
-        if(Date.now() - this.spawned > 3000){
+        if(Date.now() - this.spawned > this.spawnDelay){
             this.spawned = Date.now();
             this.players.forEach(player => {
                 player.queue.push(new WordBlock('test'));
@@ -53,22 +55,24 @@ export class Game{
     }
 
     checkDeath():string{
+        let str:string = '';
         this.players.forEach(player => {
-            if(player.queue.find(block => Date.now() - block.delta > 15000)){
+            if(player.queue.length > this.maxBlocks){
                 this.gameOver(player.socketID);
-                return player.socketID;
+                str =  player.socketID;
             }
         })
-        return '';
+        return str;
     }
 
     gameOver(socketID:string){
         const win_player = this.players.find(player => player.socketID != socketID);
         const lose_player = this.players.find(player => player.socketID == socketID);
-        win_player.score += 1;
-        this.status = 'ready';
         win_player.init();
         lose_player.init();
+        win_player.score += 1;
+        this.lastMotion = [Date.now(), 0];
+        this.status = 'ready';
     }
 
     checkAttack():boolean{
@@ -99,6 +103,7 @@ export class Game{
             let gameOver = this.checkDeath();
             if(gameOver) _res['gameOver'] = gameOver;
             if(gameOver) _res['players'] = this.players;
+            if(gameOver) delete _res['spawn'];
             if(this.checkAttack()) _res['players'] = this.players;
             return _res;
         } else if(this.status == 'ready'){

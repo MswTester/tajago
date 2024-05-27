@@ -411,3 +411,8 @@ button:disabled, input:disabled, textarea:disabled, select:disabled{
     0%{transform: translateY(0) scale(1); opacity: 1;}
     100%{transform: translateY(200px) scale(0.95); opacity: 0.5;}
 }
+
+@keyframes spawn {
+    0%{background-color: #f8f;}
+    100%{background-color: transparent;}
+}

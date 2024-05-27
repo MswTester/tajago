@@ -7,6 +7,13 @@ import { Player } from "server/src/game";
 import { useWindowSize } from "usehooks-ts";
 import { shadowToStyle } from "~/data/utils";
 
+const redBg = (myPlayer:Player) => {
+    const len = myPlayer.queue.length
+    const val = len > 5 ? (len-5)*1 : "0"
+    return <div className="absolute w-full h-full top-0 left-0 pointer-events-none" style={{
+        boxShadow: `inset 0 0 50px #f00${val}`,
+    }}></div>
+}
 
 export default function Game(props:socketProps) {
     const socket:Socket = props.socket
@@ -17,12 +24,13 @@ export default function Game(props:socketProps) {
     const [once, setOnce] = useState<boolean>(false)
     const [objs, setObjs] = useState<Obj[]>([])
     const [frontObjs, setFrontObjs] = useState<Obj[]>([])
-    const [myPlayer, setMyPlayer] = useState<Player>()
+    const [myPlayer, setMyPlayer] = useState<Player|null>(null)
     const [timeline, setTimeline] = useState<number>(0) // Date.now()
     const {width, height} = useWindowSize()
     const size = Math.min(width, height)
     const circleRef = useRef<HTMLDivElement>(null)
     const [input, setInput] = useState<string>('')
+    const firstRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => setOnce(true), [])
     useEffect(() => {
@@ -97,17 +105,23 @@ export default function Game(props:socketProps) {
             })
 
             socket.on('game-players', (players:Player[]) => {
-                setMyPlayer(players.find(player => player.socketID == socket.id))
+                setMyPlayer(players.find(player => player.socketID == socket.id) || null)
             })
 
             socket.on('game-spawn', () => {
+                console.log('Spawn')
             })
 
             socket.on('game-gameOver', (socketId:string) => {
+                console.log('Game Over', socketId)
             })
 
             socket.on('game-waiting', (idx:number) => {
+                console.log('Waiting', idx)
+            })
 
+            socket.on('game-attack', (data:{enemy:string, attack:number}) => {
+                console.log('Attack', data)
             })
 
             return () => {
@@ -123,16 +137,32 @@ export default function Game(props:socketProps) {
         }
     }, [once])
 
+    useEffect(() => {
+        if(myPlayer && firstRef.current){
+            firstRef.current.style.animation = `spawn 0.5s ease-in-out`
+        }
+    }, [myPlayer])
+
     return <div className="w-full h-full flex flex-col justify-center items-center overflow-hidden fade">
         <WebCanvas idx={-1} objs={objs} bg="linear-gradient(86deg, #201, #402, #201)" />
         {/* PlayBox */}
         <div className="rounded-lg font-bold text-lg flex flex-col justify-center" style={{width:`${size/2}px`, height:`${size-80}px`}}>
-            <div className="w-full h-full rounded-t-lg" style={{boxShadow:'inset 0 0 20px #f7f'}}>
+            <div className="w-full h-full rounded-t-lg relative p-1 gap-1" style={{boxShadow:'inset 0 0 20px #f7f'}}>
                 {myPlayer ? myPlayer.queue.map((v, i) => {
-                    return <div key={i} className="w-full h-[20%] flex justify-center items-center text-center" style={{transform:`translateY(-100%)`}}>{v.word}</div>
+                    return <div key={i} className="w-full h-[10%] flex justify-center items-center text-center border-2 border-[#faf] rounded-lg"
+                    style={{boxShadow:`inset 0 0 10px #f9f, 0 0 10px #f9f`
+                    }} ref={i == 0 ? firstRef : null}>{v.word}</div>
                 }) : null}
             </div>
-            <input type="text" name="" id="" className="w-full rounded-b-lg p-2 text-center" value={input} onChange={e => setInput(e.target.value)} placeholder="Type Here" />
+            <input type="text" name="" id="" className="w-full rounded-b-lg p-2 text-center" value={input} onChange={e => setInput(e.target.value)} placeholder="Type Here"
+            onKeyDown={e => {
+                if(e.key === 'Enter'){
+                    if(myPlayer){
+                        socket.emit('game-attack', roomId, input)
+                        setInput('')
+                    }
+                }
+            }} />
         </div>
         <div ref={circleRef} className="absolute pointer-events-none rounded-full" style={{
             width: size*1.5, height: size*1.5,
@@ -140,5 +170,11 @@ export default function Game(props:socketProps) {
             transform: `translate(-50%, -50%)`,
         }}></div>
         <WebCanvas idx={10} objs={frontObjs} />
+        <div className="absolute w-full h-full top-0 left-0 pointer-events-none" style={{
+            background: 'radial-gradient(50% 50% at 50% 50%, #0000, #0005)',
+            mixBlendMode: 'overlay',
+            animation: 'fade 0.3s ease-in-out',
+        }}></div>
+        {myPlayer && redBg(myPlayer)}
     </div>
 }

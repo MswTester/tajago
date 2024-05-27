@@ -89,6 +89,7 @@ setInterval(() => {
     const tick = game.tick()
     Object.keys(tick).forEach((key) => {
       const value = tick[key];
+      console.log(key, value)
       io.to(game.roomID).emit(`game-${key}`, value)
     })
   })
@@ -121,6 +122,17 @@ io.on("connection", (socket:Socket) => {
     if(game){
       if(game.ready(socket.id)){
         io.to(roomID).emit('start')
+      }
+    }
+  })
+
+  socket.on('game-attack', (roomID:string, word:string) => {
+    const game = games.find(game => game.roomID == roomID)
+    if(game){
+      const enemyId = game.players.find(player => player.socketID != socket.id)?.socketID
+      const attack = game.attack(enemyId, word)
+      if(attack){
+        io.to(roomID).emit('game-attack', attack)
       }
     }
   })
