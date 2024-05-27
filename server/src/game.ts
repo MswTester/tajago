@@ -98,6 +98,7 @@ export class Game{
             }
             let gameOver = this.checkDeath();
             if(gameOver) _res['gameOver'] = gameOver;
+            if(gameOver) _res['players'] = this.players;
             if(this.checkAttack()) _res['players'] = this.players;
             return _res;
         } else if(this.status == 'ready'){

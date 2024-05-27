@@ -10,6 +10,7 @@ interface IUser{
     wins:number;
     losses:number;
     admin:boolean;
+    banned:boolean;
 }
 
 interface storeAction {
