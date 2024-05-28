@@ -6,9 +6,10 @@ export default function WebCanvas(props:{
     style?:React.CSSProperties;
     bg?:string;
     focus?:boolean;
+    ref?:React.RefObject<HTMLDivElement>;
 }) {
     return (
-        <div className={props.focus ? "" : "pointer-events-none"}
+        <div className={props.focus ? "" : "pointer-events-none"} ref={props.ref}
         style={{...props.style, zIndex:`${props.idx}`, background: props.bg || "",
         width:'100vw', height:'100vh', position:'absolute', left:'0px', top:'0px'}}>
             {props.objs.map((obj, i) => {

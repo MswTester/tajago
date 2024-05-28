@@ -35,6 +35,7 @@ export default function Game(props:socketProps) {
     const [spawn, setSpawn] = useState<boolean>(false)
     const [ovBg, setOvBg] = useState<string>('')
     const [ovObjs, setOvObjs] = useState<Obj[]>([])
+    const overlayRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => setOnce(true), [])
     useEffect(() => {
@@ -106,25 +107,34 @@ export default function Game(props:socketProps) {
 
             socket.on('start-game', (players:Player[]) => {
                 console.log('Game Start')
-                const _ovObjs:Obj[] = []
-                
-                console.log(players)
+                let _ovObjs:Obj[] = []
+
                 players.sort((a, b) => a.socketID == socket.id ? -1 : 1).forEach((player, i) => {
                     const po = new Obj(
-                        [width/2, height/2],
+                        [25 + (i * 50), 30 + (i * 40)],
                         [500, 100],
                         [1, 1],
                         0,
                         1,
-                        [0.5, 0.5],
+                        [-0.5, -0.5],
                         [255, 255, 255, 0],
                         0
                     )
+                    po.relPos = true
                     po.setText(player.name, {font:'Anton', size:50, color:[255, 255, 255, 1], align:'center'})
                     _ovObjs.push(po)
                 })
                 setOvObjs(_ovObjs)
-                setOvBg('rgba(0, 0, 0, 0.5)')
+                let _opacity = 0
+                let _loop = setInterval(() => {
+                    _opacity += 0.01
+                    setOvBg(`rgba(0, 0, 0, ${_opacity/4})`)
+                    _ovObjs.forEach((ovobj, i) => {
+                        ovobj.position[0] = 25 + (i * 50) + _opacity * (i ? -1 : 1) * 50
+                    })
+                    setOvObjs(_ovObjs)
+                    if(_opacity/2 >= 0.5) clearInterval(_loop)
+                }, 10)
             })
 
             socket.on('game-players', (players:Player[]) => {
@@ -212,6 +222,6 @@ export default function Game(props:socketProps) {
             animation: 'fade 0.3s ease-in-out',
         }}></div>
         {myPlayer && redBg(myPlayer)}
-        <WebCanvas idx={20} objs={ovObjs} bg={ovBg} />
+        <WebCanvas idx={20} objs={ovObjs} bg={ovBg} ref={overlayRef} />
     </div>
 }

@@ -2,6 +2,7 @@ export default class Obj{
     tag:string = '';
     customData:{[key:string]:any} = {};
     position:vec2 = [0, 0];
+    relPos:boolean = false;
     velocity:vec2 = [0, 0];
     size:vec2 = [0, 0];
     scale:vec2 = [1, 1];
@@ -77,12 +78,13 @@ export default class Obj{
 
     getStyle():React.CSSProperties{
         let shadowDatas:[number, vec4][] = this.calculateShadows()
-        const startColor:vec4 = shadowDatas[0][1]
+        if(shadowDatas.length == 0) shadowDatas.push([0, this.color])
+        const startColor:vec4 = shadowDatas[0][1];
         const shadows = shadowDatas.map(data => `0 0 ${data[0]}px rgba(${data[1][0]}, ${data[1][1]}, ${data[1][2]}, ${data[1][3]})`).join(', ')
         const tcc:vec4 = this.textConfig.color as vec4;
         return {
-            left:`${this.position[0]}px`,
-            top:`${this.position[1]}px`,
+            left:this.relPos ? `${this.position[0]}%` : `${this.position[0]}px`,
+            top:this.relPos ? `${this.position[1]}%` : `${this.position[1]}px`,
             width:`${this.size[0]}px`,
             height:`${this.size[1]}px`,
             transform:`translate(${this.pivot[0] * 100}%, ${this.pivot[1] * 100}%) rotate(${this.rotation}deg) scale(${this.scale[0]}, ${this.scale[1]})`,
