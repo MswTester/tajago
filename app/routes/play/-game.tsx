@@ -5,10 +5,9 @@ import WebCanvas from "../components/-webCanvas";
 import Obj from "~/data/obj";
 import { Player } from "server/src/game";
 import { useWindowSize } from "usehooks-ts";
-import { shadowToStyle } from "~/data/utils";
+import { getEase, shadowToStyle } from "~/data/utils";
 
-const redBg = (myPlayer:Player) => {
-    const len = myPlayer.queue.length
+const redBg = (len:number) => {
     const val = len > 5 ? (len-5)*1 : "0"
     return <div className="absolute w-full h-full top-0 left-0 pointer-events-none" style={{
         boxShadow: `inset 0 0 50px #f00${val}`,
@@ -36,6 +35,7 @@ export default function Game(props:socketProps) {
     const [ovBg, setOvBg] = useState<string>('')
     const [ovObjs, setOvObjs] = useState<Obj[]>([])
     const overlayRef = useRef<HTMLDivElement>(null)
+    const [overlayStyle, setOverlayStyle] = useState<React.CSSProperties>({})
 
     useEffect(() => setOnce(true), [])
     useEffect(() => {
@@ -72,7 +72,7 @@ export default function Game(props:socketProps) {
                     [1, 1],
                     0,
                     0.7,
-                    [0.5, 0.5],
+                    [-0.5, -0.5],
                     [230, 30, 255, 1],
                     100
                 )
@@ -130,7 +130,7 @@ export default function Game(props:socketProps) {
                     _opacity += 0.01
                     setOvBg(`rgba(0, 0, 0, ${_opacity/4})`)
                     _ovObjs.forEach((ovobj, i) => {
-                        ovobj.position[0] = 25 + (i * 50) + _opacity * (i ? -1 : 1) * 50
+                        ovobj.position[0] = 25 + (i * 50) + getEase(_opacity, 'easeOutCubic') * (i ? -1 : 1) * 50
                     })
                     setOvObjs(_ovObjs)
                     if(_opacity/2 >= 0.5) clearInterval(_loop)
@@ -143,8 +143,10 @@ export default function Game(props:socketProps) {
                 setScore([players[0].score, players[1].score])
             })
 
-            socket.on('game-spawn', () => {
-                setSpawn(true)
+            socket.on('game-spawn', (spawned:string[]) => {
+                if(spawned.includes(socket.id as string)){
+                    setSpawn(true)
+                }
             })
 
             socket.on('game-gameOver', (socketId:string) => {
@@ -153,6 +155,14 @@ export default function Game(props:socketProps) {
 
             socket.on('game-waiting', (idx:number) => {
                 console.log('Waiting', idx)
+                if(idx == 1){
+                    setOverlayStyle({animation:'fade-out 0.5s ease-in-out', opacity:0})
+                    setTimeout(() => {
+                        setOvBg('')
+                        setOvObjs([])
+                        setOverlayStyle({})
+                    }, 500)
+                }
             })
 
             socket.on('game-attack', (data:{enemy:string, attack:number}) => {
@@ -203,7 +213,7 @@ export default function Game(props:socketProps) {
             <input type="text" name="" id="" className="w-full rounded-b-lg p-2 text-center" value={input} onChange={e => setInput(e.target.value)} placeholder="Type Here"
             onKeyDown={e => {
                 if(e.key === 'Enter'){
-                    if(myPlayer){
+                    if(myPlayer && myPlayer.queue.find(v => v.word == input)){
                         socket.emit('game-attack', roomId, input)
                         setInput('')
                     }
@@ -221,7 +231,7 @@ export default function Game(props:socketProps) {
             mixBlendMode: 'overlay',
             animation: 'fade 0.3s ease-in-out',
         }}></div>
-        {myPlayer && redBg(myPlayer)}
-        <WebCanvas idx={20} objs={ovObjs} bg={ovBg} ref={overlayRef} />
+        {myPlayer && redBg(myPlayer.queue.length)}
+        <WebCanvas idx={20} objs={ovObjs} bg={ovBg} ref={overlayRef} style={overlayStyle} />
     </div>
 }

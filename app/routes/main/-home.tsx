@@ -49,7 +49,7 @@ export default function Home(props:socketProps) {
                     [1, 1],
                     0,
                     0.7,
-                    [0.5, 0.5],
+                    [-0.5, -0.5],
                     [10, 235, 255, 1],
                     100
                 )

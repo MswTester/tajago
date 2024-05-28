@@ -7,9 +7,9 @@ export class Game{
 
     spawnDelay:number = 3000; // The delay between spawns
     maxBlocks:number = 10; // The maximum number of blocks
-    
-    spawned:number; // The time of the last spawn
+
     lastMotion:[number, number] = [0, 0]; // The [time, idx] of the last motion
+    attacked:boolean = false; // The attacked status
     constructor(roomID:string, players:Player[], isRank:boolean = false){
         this.roomID = roomID;
         this.players = players;
@@ -39,19 +39,22 @@ export class Game{
 
     start(){
         this.status = 'playing';
-        this.spawned = Date.now();
+        this.players.forEach(player => {
+            player.init();
+            player.spawned = Date.now();
+        })
     }
 
-    checkSpawn():boolean{
-        if(Date.now() - this.spawned > this.spawnDelay){
-            this.spawned = Date.now();
-            this.players.forEach(player => {
+    checkSpawn():string[]{
+        let spawn:string[] = [];
+        this.players.forEach(player => {
+            if(Date.now() - player.spawned > this.spawnDelay){
+                player.spawned = player.spawned + this.spawnDelay;
                 player.queue.push(new WordBlock('test'));
-            })
-            return true;
-        } else {
-            return false;
-        }
+                spawn.push(player.socketID);
+            }
+        })
+        return spawn;
     }
 
     checkDeath():string{
@@ -81,9 +84,7 @@ export class Game{
             if(player.attackQueue.length > 0){
                 player.attackQueue.forEach(attack => {
                     if(Date.now() - attack[1] > 1000){
-                        player.queue.forEach(block => {
-                            block.delta -= attack[0] * 100;
-                        })
+                        player.spawned -= attack[0] * 100;
                         player.attackQueue.shift();
                         _res = true;
                     }
@@ -96,15 +97,20 @@ export class Game{
     tick():{[key:string]:any}{
         if(this.status == 'playing'){
             let _res:{[key:string]:any} = {}
-            if(this.checkSpawn()) {
+            let checkSpawn = this.checkSpawn()
+            if(checkSpawn.length > 0) {
                 _res['players'] = this.players;
-                _res['spawn'] = true;
+                _res['spawn'] = checkSpawn;
             }
             let gameOver = this.checkDeath();
             if(gameOver) _res['gameOver'] = gameOver;
             if(gameOver) _res['players'] = this.players;
             if(gameOver) delete _res['spawn'];
             if(this.checkAttack()) _res['players'] = this.players;
+            if(this.attacked) {
+                _res['players'] = this.players;
+                this.attacked = false;
+            };
             return _res;
         } else if(this.status == 'ready'){
             if(Date.now() - this.lastMotion[0] > 2000){
@@ -122,6 +128,7 @@ export class Game{
         const player = this.players.find(player => player.socketID == socketID);
         const enemy = this.players.find(player => player.socketID != socketID);
         if(player){
+            this.attacked = true;
             player.queue = player.queue.filter(block => block.word != word);
             enemy.attackQueue.push([word.length, Date.now()]);
             return {enemy: enemy.socketID, attack: word.length};
@@ -138,6 +145,7 @@ export class Player{
     combo:number; // The combo of the player
     queue:WordBlock[]; // The queue of the word blocks
     attackQueue:[number, number][]; // The attack queue
+    spawned:number = Date.now(); // The last spawn time
     constructor(socketID:string, name:string, rating:number){
         this.socketID = socketID;
         this.name = name;

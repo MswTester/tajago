@@ -129,8 +129,7 @@ io.on("connection", (socket:Socket) => {
   socket.on('game-attack', (roomID:string, word:string) => {
     const game = games.find(game => game.roomID == roomID)
     if(game){
-      const enemyId = game.players.find(player => player.socketID != socket.id)?.socketID
-      const attack = game.attack(enemyId, word)
+      const attack = game.attack(socket.id, word)
       if(attack){
         io.to(roomID).emit('game-attack', attack)
       }
