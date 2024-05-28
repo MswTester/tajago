@@ -9,6 +9,14 @@ export default class Obj{
     alpha:number = 1;
     pivot:vec2 = [0, 0];
     color:vec4 = [0, 0, 0, 1];
+    text:string = '';
+    textConfig:TextConfig = {
+        font:'Arial',
+        size:12,
+        align:'center',
+        color:[0, 0, 0, 1],
+        shadow:0
+    }
     rounded:number = 0;
     glow:number = 0;
     glowIntensity:number = 0;
@@ -38,7 +46,12 @@ export default class Obj{
         this.position[0] += this.velocity[0]
         this.position[1] += this.velocity[1]
     }
-    
+
+    setText(text:string, config?:TextConfig){
+        this.text = text
+        this.textConfig = config ? {...this.textConfig, ...config} : this.textConfig
+    }
+
     setGlow(glow:number, intensity:number, radius:number, opacity:number){
         this.glow = glow
         this.glowIntensity = intensity
@@ -66,15 +79,22 @@ export default class Obj{
         let shadowDatas:[number, vec4][] = this.calculateShadows()
         const startColor:vec4 = shadowDatas[0][1]
         const shadows = shadowDatas.map(data => `0 0 ${data[0]}px rgba(${data[1][0]}, ${data[1][1]}, ${data[1][2]}, ${data[1][3]})`).join(', ')
+        const tcc:vec4 = this.textConfig.color as vec4;
         return {
             left:`${this.position[0]}px`,
             top:`${this.position[1]}px`,
             width:`${this.size[0]}px`,
             height:`${this.size[1]}px`,
             transform:`translate(${this.pivot[0] * 100}%, ${this.pivot[1] * 100}%) rotate(${this.rotation}deg) scale(${this.scale[0]}, ${this.scale[1]})`,
-            backgroundColor:this.glow ? `rgba(${startColor[0]}, ${startColor[1]}, ${startColor[2]}, ${startColor[3]})` : `rgba(${this.color[0]}, ${this.color[1]}, ${this.color[2]}, ${this.color[3]})`,
+            backgroundColor:this.glow ? `rgba(${startColor.join(',')})` : `rgba(${this.color.join(',')})`,
             borderRadius:`${this.rounded}px`,
             boxShadow:this.glow ? shadows : 'none',
+            opacity:this.alpha,
+            fontFamily:this.textConfig.font,
+            fontSize:`${this.textConfig.size}px`,
+            textAlign:this.textConfig.align as any,
+            color:`rgba(${tcc.join(',')})`,
+            textShadow:this.textConfig.shadow ? `0 0 ${this.textConfig.shadow}px rgba(${tcc.join(',')})` : 'none'
         }
     }
 }

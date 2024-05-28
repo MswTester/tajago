@@ -121,7 +121,7 @@ io.on("connection", (socket:Socket) => {
     const game = games.find(game => game.roomID == roomID)
     if(game){
       if(game.ready(socket.id)){
-        io.to(roomID).emit('start')
+        io.to(roomID).emit('start-game', game.players)
       }
     }
   })
@@ -175,7 +175,8 @@ io.on("connection", (socket:Socket) => {
       socket.emit('error', 'Room is not full')
       return
     }
-    games.push(new Game(roomID, rooms[roomID].players.map(v => new Player(v.socketID, v.name, v.rating))))
+    const game = new Game(roomID, rooms[roomID].players.map(v => new Player(v.socketID, v.name, v.rating)))
+    games.push(game)
     io.to(roomID).emit('start')
   })
 

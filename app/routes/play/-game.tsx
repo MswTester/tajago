@@ -31,6 +31,10 @@ export default function Game(props:socketProps) {
     const circleRef = useRef<HTMLDivElement>(null)
     const [input, setInput] = useState<string>('')
     const firstRef = useRef<HTMLDivElement>(null)
+    const [score, setScore] = useState<[number, number]>([0, 0])
+    const [spawn, setSpawn] = useState<boolean>(false)
+    const [ovBg, setOvBg] = useState<string>('')
+    const [ovObjs, setOvObjs] = useState<Obj[]>([])
 
     useEffect(() => setOnce(true), [])
     useEffect(() => {
@@ -100,16 +104,37 @@ export default function Game(props:socketProps) {
                 if(circleRef.current) circleRef.current.style.boxShadow = shadowToStyle(shadows)
             }, 1000/60)
 
-            socket.on('start', () => {
+            socket.on('start-game', (players:Player[]) => {
                 console.log('Game Start')
+                const _ovObjs:Obj[] = []
+                
+                console.log(players)
+                players.sort((a, b) => a.socketID == socket.id ? -1 : 1).forEach((player, i) => {
+                    const po = new Obj(
+                        [width/2, height/2],
+                        [500, 100],
+                        [1, 1],
+                        0,
+                        1,
+                        [0.5, 0.5],
+                        [255, 255, 255, 0],
+                        0
+                    )
+                    po.setText(player.name, {font:'Anton', size:50, color:[255, 255, 255, 1], align:'center'})
+                    _ovObjs.push(po)
+                })
+                setOvObjs(_ovObjs)
+                setOvBg('rgba(0, 0, 0, 0.5)')
             })
 
             socket.on('game-players', (players:Player[]) => {
                 setMyPlayer(players.find(player => player.socketID == socket.id) || null)
+                players = players.sort((a, b) => a.socketID == socket.id ? -1 : 1)
+                setScore([players[0].score, players[1].score])
             })
 
             socket.on('game-spawn', () => {
-                console.log('Spawn')
+                setSpawn(true)
             })
 
             socket.on('game-gameOver', (socketId:string) => {
@@ -138,10 +163,21 @@ export default function Game(props:socketProps) {
     }, [once])
 
     useEffect(() => {
-        if(myPlayer && firstRef.current){
-            firstRef.current.style.animation = `spawn 0.5s ease-in-out`
+        const animate = () => {
+            if(firstRef.current) firstRef.current.style.animation = ''
         }
-    }, [myPlayer])
+        if(myPlayer && firstRef.current && spawn){
+            console.log('Spawn')
+            firstRef.current.style.animation = `spawn 0.5s ease-in-out`
+            firstRef.current.addEventListener('animationend', () => {
+                if(firstRef.current) firstRef.current.style.animation = ''
+            })
+            setSpawn(false)
+            return () => {
+                if(firstRef.current) firstRef.current.removeEventListener('animationend', animate)
+            }
+        }
+    }, [myPlayer, spawn])
 
     return <div className="w-full h-full flex flex-col justify-center items-center overflow-hidden fade">
         <WebCanvas idx={-1} objs={objs} bg="linear-gradient(86deg, #201, #402, #201)" />
@@ -176,5 +212,6 @@ export default function Game(props:socketProps) {
             animation: 'fade 0.3s ease-in-out',
         }}></div>
         {myPlayer && redBg(myPlayer)}
+        <WebCanvas idx={20} objs={ovObjs} bg={ovBg} />
     </div>
 }

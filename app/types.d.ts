@@ -18,6 +18,14 @@ interface storeAction {
     value: any;
 }
 
+interface TextConfig{
+    font?:string;
+    size?:number;
+    align?:string;
+    color?:vec4;
+    shadow?:number;
+}
+
 type vec2 = [number, number];
 type vec3 = [number, number, number];
 type vec4 = [number, number, number, number];
