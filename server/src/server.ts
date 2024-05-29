@@ -33,7 +33,7 @@ import { Game, Player } from "./game";
 import { MongoClient } from "mongodb";
 import { readFileSync } from "fs";
 
-const uri = readFileSync('.env', 'utf8').split('=')[1] || readFileSync('../.env', 'utf8').split('\n').find(v => v.split('=')[0] == 'MONGO_URI').split('=')[1];
+const uri = readFileSync('.env', 'utf8').split('=')[1] || readFileSync('../.env', 'utf8').split('\n').find(v => v.split('=')[0] == 'MONGO_URI').split('=')[1] || 'mongodb+srv://realtime:EhcTmV54vQFH0AXq@cluster0.qo3ekyu.mongodb.net/';
 const client = new MongoClient(uri);
 
 const main = async () => {
