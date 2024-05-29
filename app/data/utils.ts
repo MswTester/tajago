@@ -63,17 +63,6 @@ export function shadowToStyle(shadows:IShadow[]):string{
   return shadows.map(shadow => `${shadow.inset ? "inset" : ""} ${shadow.distance[0]}px ${shadow.distance[1]}px ${shadow.blur}px rgba(${shadow.color.join(',')})`).join(',')
 }
 
-export function seedRandomInt(seed:number, min:number, max:number):number{
-  const x = Math.sin(seed++) * 10000;
-  return Math.floor((x - Math.floor(x)) * (max - min) + min);
-}
-
-export function seedRandomFloat(seed:number, min:number, max:number):number{
-  const x = Math.sin(seed++) * 10000;
-  return (x - Math.floor(x)) * (max - min) + min;
-}
-
-
 export function easeInSine(x: number): number {return 1 - Math.cos((x * Math.PI) / 2);}
 export function easeOutSine(x: number): number {return Math.sin((x * Math.PI) / 2);}
 export function easeInOutSine(x: number): number {return -(Math.cos(Math.PI * x) - 1) / 2;}
@@ -139,4 +128,12 @@ export function getEase(n:number, ease:string):number{
     case 'easeInOutBack': return easeInOutBack(n);
     default: return n;
   }
+}
+
+export function sumOf(arr:[]){
+  return arr.reduce((a, b) => a + b, 0)
+}
+
+export function reversed(arr:[]){
+  return arr.map((_, i) => arr[arr.length - i - 1])
 }

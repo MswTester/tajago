@@ -5,7 +5,7 @@ import WebCanvas from "../components/-webCanvas";
 import Obj from "~/data/obj";
 import { Player } from "server/src/game";
 import { useWindowSize } from "usehooks-ts";
-import { getEase, shadowToStyle } from "~/data/utils";
+import { getEase, shadowToStyle, sumOf } from "~/data/utils";
 
 const redBg = (len:number) => {
     const val = len > 5 ? (len-5)*1 : "0"
@@ -36,6 +36,7 @@ export default function Game(props:socketProps) {
     const [ovObjs, setOvObjs] = useState<Obj[]>([])
     const overlayRef = useRef<HTMLDivElement>(null)
     const [overlayStyle, setOverlayStyle] = useState<React.CSSProperties>({})
+    const [doing, setDoing] = useState<boolean>(false)
 
     useEffect(() => setOnce(true), [])
     useEffect(() => {
@@ -135,6 +136,8 @@ export default function Game(props:socketProps) {
                     setOvObjs(_ovObjs)
                     if(_opacity/2 >= 0.5) clearInterval(_loop)
                 }, 10)
+
+                setMyPlayer(players.find(player => player.socketID == socket.id) || null)
             })
 
             socket.on('game-players', (players:Player[]) => {
@@ -151,6 +154,7 @@ export default function Game(props:socketProps) {
 
             socket.on('game-gameOver', (socketId:string) => {
                 console.log('Game Over', socketId)
+                setDoing(false)
             })
 
             socket.on('game-waiting', (idx:number) => {
@@ -162,6 +166,9 @@ export default function Game(props:socketProps) {
                         setOvObjs([])
                         setOverlayStyle({})
                     }, 500)
+                } else if(idx == 2){
+                } else if (idx == 3){
+                    setDoing(true)
                 }
             })
 
@@ -199,8 +206,12 @@ export default function Game(props:socketProps) {
         }
     }, [myPlayer, spawn])
 
-    return <div className="w-full h-full flex flex-col justify-center items-center overflow-hidden fade">
+    return <div className="w-full h-full flex flex-row justify-center items-center overflow-hidden gap-4 fade">
         <WebCanvas idx={-1} objs={objs} bg="linear-gradient(86deg, #201, #402, #201)" />
+        {/* Damage Gage */}
+        {myPlayer && <div className="w-4 rounded-full border border-white shar4" style={{height:`${size-80}px`}}>
+            {doing && <div className="w-full rounded-full bg-[#faf]" style={{height:`${(myPlayer.attackQueue.reduce((a, b) => a + b[0], 0))}%`}}></div>}
+        </div>}
         {/* PlayBox */}
         <div className="rounded-lg font-bold text-lg flex flex-col justify-center" style={{width:`${size/2}px`, height:`${size-80}px`}}>
             <div className="w-full h-full rounded-t-lg relative p-1 gap-1" style={{boxShadow:'inset 0 0 20px #f7f'}}>
@@ -213,13 +224,17 @@ export default function Game(props:socketProps) {
             <input type="text" name="" id="" className="w-full rounded-b-lg p-2 text-center" value={input} onChange={e => setInput(e.target.value)} placeholder="Type Here"
             onKeyDown={e => {
                 if(e.key === 'Enter'){
-                    if(myPlayer && myPlayer.queue.find(v => v.word == input)){
+                    if(myPlayer){
                         socket.emit('game-attack', roomId, input)
                         setInput('')
                     }
                 }
             }} />
         </div>
+        {/* Spawn Cooltime */}
+        {myPlayer && <div className="w-4 rounded-full border border-white shar4" style={{height:`${(size-80)/4}px`}}>
+            {doing && <div className="w-full rounded-full bg-[#faf]" style={{height:`${(timeline - myPlayer?.spawned) / 30}%`}}></div>}
+        </div>}
         <div ref={circleRef} className="absolute pointer-events-none rounded-full" style={{
             width: size*1.5, height: size*1.5,
             top: `50%`, left: `50%`,

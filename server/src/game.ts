@@ -1,3 +1,7 @@
+import { seedRandomInt } from "./utils";
+
+const words = ['apple', 'banana', 'cherry', 'date', 'elderberry', 'fig', 'grape', 'honeydew', 'kiwi', 'lemon', 'mango', 'nectarine', 'orange', 'papaya', 'quince', 'raspberry', 'strawberry', 'tangerine', 'watermelon']
+
 export class Game{
     roomID:string; // The room ID
     players:Player[]; // The players in the game
@@ -50,7 +54,8 @@ export class Game{
         this.players.forEach(player => {
             if(Date.now() - player.spawned > this.spawnDelay){
                 player.spawned = player.spawned + this.spawnDelay;
-                player.queue.push(new WordBlock('test'));
+                player.spawnedCount += 1;
+                player.queue.push(new WordBlock(words[seedRandomInt(this.seed*player.spawnedCount, 0, words.length)]));
                 spawn.push(player.socketID);
             }
         })
@@ -113,12 +118,15 @@ export class Game{
             };
             return _res;
         } else if(this.status == 'ready'){
+            let _res:{[key:string]:any} = {};
             if(Date.now() - this.lastMotion[0] > 2000){
                 this.lastMotion = [Date.now(), this.lastMotion[1] + 1];
                 if(this.lastMotion[1] > 2){ // 3 * 2 seconds
                     this.start();
+                    _res['players'] = this.players;
                 }
-                return {"waiting": this.lastMotion[1]};
+                _res['waiting'] = this.lastMotion[1];
+                return _res;
             }
         }
         return {};
@@ -128,10 +136,17 @@ export class Game{
         const player = this.players.find(player => player.socketID == socketID);
         const enemy = this.players.find(player => player.socketID != socketID);
         if(player){
-            this.attacked = true;
-            player.queue = player.queue.filter(block => block.word != word);
-            enemy.attackQueue.push([word.length, Date.now()]);
-            return {enemy: enemy.socketID, attack: word.length};
+            const idx = player.queue.findIndex(v => v.word == word);
+            if(idx == -1) {
+                player.combo = 0
+                return null;
+            } else {
+                this.attacked = true;
+                enemy.attackQueue.push([word.length, Date.now()]);
+                player.queue.splice(idx, 1);
+                player.combo += 1;
+                return {enemy: enemy.socketID, attack: word.length};
+            }
         }
     }
 }
@@ -144,8 +159,9 @@ export class Player{
     score:number; // The score of the player
     combo:number; // The combo of the player
     queue:WordBlock[]; // The queue of the word blocks
-    attackQueue:[number, number][]; // The attack queue
+    attackQueue:[number, number][]; // The attack queue (length, time)
     spawned:number = Date.now(); // The last spawn time
+    spawnedCount:number = 0; // The number of spawns
     constructor(socketID:string, name:string, rating:number){
         this.socketID = socketID;
         this.name = name;
