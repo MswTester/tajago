@@ -89,7 +89,7 @@ export class Game{
             if(player.attackQueue.length > 0){
                 player.attackQueue.forEach(attack => {
                     if(Date.now() - attack[1] > 1000){
-                        player.spawned -= attack[0] * 100;
+                        player.spawned -= attack[0] * this.spawnDelay / 10;
                         player.attackQueue.shift();
                         _res = true;
                     }
@@ -142,9 +142,9 @@ export class Game{
                 return null;
             } else {
                 this.attacked = true;
-                enemy.attackQueue.push([word.length, Date.now()]);
-                player.queue.splice(idx, 1);
                 player.combo += 1;
+                enemy.attackQueue.push([word.length * (1+(player.combo/100)), Date.now()]);
+                player.queue.splice(idx, 1);
                 return {enemy: enemy.socketID, attack: word.length};
             }
         }

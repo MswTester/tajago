@@ -134,6 +134,6 @@ export function sumOf(arr:[]){
   return arr.reduce((a, b) => a + b, 0)
 }
 
-export function reversed(arr:[]){
+export function reversed(arr:any[]){
   return arr.map((_, i) => arr[arr.length - i - 1])
 }
