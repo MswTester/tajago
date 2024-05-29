@@ -32,7 +32,6 @@ export default function Game(props:socketProps) {
     const circleRef = useRef<HTMLDivElement>(null)
     const [input, setInput] = useState<string>('')
     const firstRef = useRef<HTMLDivElement>(null)
-    const [score, setScore] = useState<[number, number]>([0, 0])
     const [spawn, setSpawn] = useState<boolean>(false)
     const overlayRef = useRef<HTMLDivElement>(null)
     const [overlayStyle, setOverlayStyle] = useState<React.CSSProperties>({})
@@ -57,6 +56,8 @@ export default function Game(props:socketProps) {
     const [isWin, setIsWin] = useState<boolean>(false)
     const [isRank, setIsRank] = useState<boolean>(false)
     const [rewardRate, setRewardRate] = useState<string>("0")
+    const [combo, setCombo] = useState<number>(0)
+    const [combod, setCombod] = useState<number>(Date.now())
 
     useEffect(() => setOnce(true), [])
     useEffect(() => {
@@ -115,6 +116,16 @@ export default function Game(props:socketProps) {
                 })
                 _objs = _objs.filter(obj => !(obj.position[1] <= -20 && obj.tag == 'particle'))
                 setObjs(_objs)
+
+                _frontObjs = _frontObjs.map(obj => {
+                    obj.customData['dis'] += 0.02
+                    const eased = getEase(obj.customData['dis'], 'easeOutCubic')
+                    obj.position[0] = obj.customData['cx'] + obj.customData['dx'] + (eased * obj.customData['dx'])
+                    obj.position[1] = obj.customData['cy'] + obj.customData['dy'] + (eased * obj.customData['dy'])
+                    obj.alpha = 1 - eased
+                    return obj
+                })
+                _frontObjs = _frontObjs.filter(obj => obj.customData['dis'] < 1)
                 setFrontObjs(_frontObjs)
 
                 shadows = shadows.map((shadow, i) => {
@@ -197,7 +208,7 @@ export default function Game(props:socketProps) {
                 }
             })
 
-            socket.on('game-attack', (data:{enemy:string, attack:number}) => {
+            socket.on('game-attack', (data:{enemy:string; attack:number; me:string; combo:number}) => {
                 if(data.enemy == socket.id){
                     let _strength = data.attack
                     let _d = _strength / 10
@@ -209,6 +220,35 @@ export default function Game(props:socketProps) {
                             clearInterval(_loop)
                         }
                     }, 10)
+                }
+                if(data.me == socket.id){
+                    setCombo(data.combo)
+                    setCombod(Date.now())
+                    for(let i = 0; i < 20; i++){
+                        const dis = Math.random() * 0.8 + 0.4
+                        const cx = width/2
+                        const cy = height/2 + size/2.8
+                        const dx = - size/4 + Math.random() * (size/2)
+                        const dy = - 40 + Math.random() * 80
+                        const obj = new Obj(
+                            [cx + dx, cy + dy],
+                            [dis*10, dis*10],
+                            [1, 1],
+                            0,
+                            1,
+                            [-0.5, -0.5],
+                            [230, 30, 255, 1],
+                            100
+                        )
+                        obj.tag = 'attack_particle'
+                        obj.customData['dis'] = 0
+                        obj.customData['cx'] = cx
+                        obj.customData['cy'] = cy
+                        obj.customData['dx'] = dx
+                        obj.customData['dy'] = dy
+                        obj.setGlow(20, 5, 5, 0.05)
+                        _frontObjs.unshift(obj)
+                    }
                 }
             })
 
@@ -307,6 +347,12 @@ export default function Game(props:socketProps) {
             {doing && <div className="w-full rounded-full bg-[#faf]" style={{height:`${(timeline - myPlayer?.spawned) / 30}%`,
             boxShadow:'0 0 10px #faf, 0 0 20px #fafd, 0 0 30px #fafb'}}></div>}
         </div>}
+        {/* Combo */}
+        {combo > 1 && <div className="absolute text-2xl lg:text-3xl text-[#faa] font-anton"
+        style={{textShadow:"0 0 10px #faa9, 0 0 20px #faa8, 0 0 30px #faa7, 0 0 40px #faa6",
+            top:`${height/2 + size/3}px`, left:`${width/2 + size/4 + 20}px`, transform:'translate(0, -50%)',
+            opacity:Math.max(0, 1 - (timeline - combod) / 1000)
+        }}>{combo} Combo</div>}
         {/* Score board */}
         <div className="top-0 absolute w-24 rounded-b-lg flex flex-col justify-center items-center bg-[#000a] border-2 border-[#fdf] text-[#faf]"
         style={{boxShadow: `0 0 10px #fcf, 0 0 20px #fbf, 0 0 30px #faf`}}>{scoreText}</div>
@@ -317,7 +363,7 @@ export default function Game(props:socketProps) {
             transform: `translate(-50%, -50%)`,
         }}></div>
         {/* front particle */}
-        <WebCanvas idx={10} objs={frontObjs} />
+        <WebCanvas idx={1} objs={frontObjs} />
         {/* Mood Gradient Overlay */}
         <div className="absolute w-full h-full top-0 left-0 pointer-events-none" style={{
             background: 'radial-gradient(50% 50% at 50% 50%, #0000, #0005)',

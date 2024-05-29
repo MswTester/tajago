@@ -129,7 +129,7 @@ export class Game{
                 this.attacked = false;
             };
             if(this.gameFinished()) {
-                const winner = this.players[0].score > this.players[1].score ? this.players[0].socketID : this.players[1].socketID;
+                const winner = this.players[0].score == this.maxScore ? this.players[0].socketID : this.players[1].socketID;
                 _res = {
                     'players': this.players,
                     'finished': {
@@ -156,7 +156,7 @@ export class Game{
         return {};
     }
 
-    attack(socketID:string, word:string):{enemy:string, attack:number}{
+    attack(socketID:string, word:string):{enemy:string, attack:number, me:string, combo:number}{
         const player = this.players.find(player => player.socketID == socketID);
         const enemy = this.players.find(player => player.socketID != socketID);
         if(player){
@@ -167,9 +167,9 @@ export class Game{
             } else {
                 this.attacked = true;
                 player.combo += 1;
-                enemy.attackQueue.push([word.length * (1+(player.combo/100)), Date.now()]);
+                enemy.attackQueue.push([word.length * (1+(player.combo/50)) * (this.language == 'ko' ? 2 : 1), Date.now()]);
                 player.queue.splice(idx, 1);
-                return {enemy: enemy.socketID, attack: word.length};
+                return {enemy: enemy.socketID, attack: word.length, me: player.socketID, combo: player.combo};
             }
         }
     }

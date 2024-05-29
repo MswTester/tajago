@@ -242,7 +242,7 @@ const main = async () => {
       }
       const game = games.find(game => game.players.find(player => player.socketID == socket.id))
       if(game){
-        const winner = game.players[0].socketID
+        const winner = game.players.find(player => player.socketID != socket.id).socketID
         const rating = game.getRewardRating(winner)
         io.to(game.roomID).emit('game-finished', {isRank:game.isRank, rating, winner, players:game.players})
         await users.updateOne({id:onlines[winner]}, {$inc:{rating:rating[0], wins:1}})
