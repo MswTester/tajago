@@ -1,16 +1,19 @@
 import { seedRandomInt } from "./utils";
-
-const words = ['apple', 'banana', 'cherry', 'date', 'elderberry', 'fig', 'grape', 'honeydew', 'kiwi', 'lemon', 'mango', 'nectarine', 'orange', 'papaya', 'quince', 'raspberry', 'strawberry', 'tangerine', 'watermelon']
+import { words } from "./words";
 
 export class Game{
     roomID:string; // The room ID
     players:Player[]; // The players in the game
     isRank:boolean; // The rank status of the game
     status:string; // waiting, ready, playing
+    language:string = 'ko'; // The language of the game
     seed:number; // The seed of the game
 
     spawnDelay:number = 3000; // The delay between spawns
     maxBlocks:number = 10; // The maximum number of blocks
+    waitingInterval:number = 1500; // The interval between waiting
+    damageInterval:number = 1000; // The interval between damage
+    maxScore:number = 5; // The maximum score
 
     lastMotion:[number, number] = [0, 0]; // The [time, idx] of the last motion
     attacked:boolean = false; // The attacked status
@@ -55,7 +58,7 @@ export class Game{
             if(Date.now() - player.spawned > this.spawnDelay){
                 player.spawned = player.spawned + this.spawnDelay;
                 player.spawnedCount += 1;
-                player.queue.push(new WordBlock(words[seedRandomInt(this.seed*player.spawnedCount, 0, words.length)]));
+                player.queue.push(new WordBlock(words[this.language][seedRandomInt(this.seed*player.spawnedCount, 0, words[this.language].length)]));
                 spawn.push(player.socketID);
             }
         })
@@ -80,6 +83,7 @@ export class Game{
         lose_player.init();
         win_player.score += 1;
         this.lastMotion = [Date.now(), 0];
+        this.seed = Math.random();
         this.status = 'ready';
     }
 
@@ -88,7 +92,7 @@ export class Game{
         this.players.forEach(player => {
             if(player.attackQueue.length > 0){
                 player.attackQueue.forEach(attack => {
-                    if(Date.now() - attack[1] > 1000){
+                    if(Date.now() - attack[1] > this.damageInterval){
                         player.spawned -= attack[0] * this.spawnDelay / 10;
                         player.attackQueue.shift();
                         _res = true;
@@ -97,6 +101,14 @@ export class Game{
             }
         })
         return _res;
+    }
+
+    gameFinished():boolean{
+        if(this.players[0].score == this.maxScore || this.players[1].score == this.maxScore){
+            this.status = 'finished';
+            return true;
+        }
+        return false;
     }
 
     tick():{[key:string]:any}{
@@ -116,10 +128,22 @@ export class Game{
                 _res['players'] = this.players;
                 this.attacked = false;
             };
+            if(this.gameFinished()) {
+                const winner = this.players[0].score > this.players[1].score ? this.players[0].socketID : this.players[1].socketID;
+                _res = {
+                    'players': this.players,
+                    'finished': {
+                        isRank: this.isRank,
+                        rating: this.getRewardRating(winner),
+                        winner,
+                        players: this.players
+                    }
+                }
+            }
             return _res;
         } else if(this.status == 'ready'){
             let _res:{[key:string]:any} = {};
-            if(Date.now() - this.lastMotion[0] > 2000){
+            if(Date.now() - this.lastMotion[0] > this.waitingInterval){
                 this.lastMotion = [Date.now(), this.lastMotion[1] + 1];
                 if(this.lastMotion[1] > 2){ // 3 * 2 seconds
                     this.start();
@@ -149,6 +173,33 @@ export class Game{
             }
         }
     }
+
+    getAvgRating():number{
+        return this.players.reduce((a, b) => a + b.rating, 0) / this.players.length;
+    }
+
+    getRewardRating(winnerId:string):[number, number]{
+        const winner = this.players.find(player => player.socketID == winnerId);
+        const loser = this.players.find(player => player.socketID != winnerId);
+        const rateMax = 10000;
+        const defautReward = 100;
+        const diff = winner.rating - loser.rating;
+        const gap = Math.abs(diff)/10;
+        const multiplier = ((gap+defautReward)/defautReward)
+        let winnerRating = diff > 0 ? (defautReward) / multiplier : defautReward * multiplier;
+        let loserRating = diff > 0 ? (defautReward) / multiplier : defautReward * multiplier;
+        let winnerRange = (winner.rating / rateMax)
+        let loserRange = (loser.rating / rateMax)
+        winnerRange = Math.sqrt((1-winnerRange) < 0 ? 0 : (1-winnerRange))*2
+        loserRange = Math.sqrt(loserRange < 0 ? 0 : loserRange)*2
+        winnerRating *= winnerRange
+        loserRating *= loserRange
+        winnerRating = Math.min(Math.max(Math.round(winnerRating), 0), 500);
+        loserRating = -Math.min(Math.max(Math.round(loserRating), 0), 500);
+        if(winner.rating + winnerRating > rateMax) winnerRating = rateMax - winner.rating;
+        if(loser.rating + loserRating < 0) loserRating = -loser.rating;
+        return [winnerRating, loserRating];
+    }
 }
 
 export class Player{
@@ -177,6 +228,8 @@ export class Player{
         this.combo = 0;
         this.queue = [];
         this.attackQueue = [];
+        this.spawned = Date.now();
+        this.spawnedCount = 0;
     }
 }
 

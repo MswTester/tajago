@@ -11,6 +11,7 @@ export default class Obj{
     pivot:vec2 = [0, 0];
     color:vec4 = [0, 0, 0, 1];
     text:string = '';
+    style:React.CSSProperties = {};
     textConfig:TextConfig = {
         font:'Arial',
         size:12,
@@ -83,6 +84,7 @@ export default class Obj{
         const shadows = shadowDatas.map(data => `0 0 ${data[0]}px rgba(${data[1][0]}, ${data[1][1]}, ${data[1][2]}, ${data[1][3]})`).join(', ')
         const tcc:vec4 = this.textConfig.color as vec4;
         return {
+            ...this.style,
             left:this.relPos ? `${this.position[0]}%` : `${this.position[0]}px`,
             top:this.relPos ? `${this.position[1]}%` : `${this.position[1]}px`,
             width:`${this.size[0]}px`,

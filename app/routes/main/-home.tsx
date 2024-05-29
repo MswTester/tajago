@@ -30,6 +30,19 @@ export default function Home(props:socketProps) {
     useEffect(() => setOnce(true), [])
     useEffect(() => {
         if(once){
+            fetch('/controller/col/users/type/get', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({id: user.id})
+            }).then(res => res.json()).then(data => {
+                if(data.error){
+                    dispatch({type:'error', value:data.error})
+                } else {
+                    dispatch({type:'user', value:data})
+                }
+            }).catch(err => {
+                dispatch({type:'error', value:err})
+            })
             socket.emit('online', user.id)
             let bObjs:Obj[] = []
             let width = window.innerWidth

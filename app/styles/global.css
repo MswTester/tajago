@@ -418,6 +418,21 @@ button:disabled, input:disabled, textarea:disabled, select:disabled{
 }
 
 @keyframes go-out {
-    0%{transform: scale(1);opacity: 1;}
-    100%{transform: scale(1.5);opacity: 0;}
+    0%{transform: translate(-50%, -50%) scale(1) ;opacity: 1;}
+    100%{transform: translate(-50%, -50%) scale(1.5);opacity: 0;}
+}
+
+.trans{
+    transition: 0.4s height;
+}
+
+@keyframes gameOver {
+    0%{transform: rotate(-20deg) scale(0);}
+    80%{transform: rotate(5deg) scale(1.1);}
+    100%{transform: rotate(0deg) scale(1);}
+}
+
+@keyframes gameOverScore {
+    0%{bottom: 15%; opacity: 0.5;}
+    100%{bottom: 30%; opacity: 1;}
 }
