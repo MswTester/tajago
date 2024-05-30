@@ -47,6 +47,7 @@ export default function SettingState(props:socketProps){
             dispatch({type:'isFetching', value:false})
             if(data.success){
                 dispatch({type:'user', value:{...user, username}})
+                dispatch({type:'alert', value:'Username changed successfully'})
             } else {
                 dispatch({type:'error', value:"Username already exists"})
             }
@@ -67,6 +68,7 @@ export default function SettingState(props:socketProps){
             dispatch({type:'isFetching', value:false})
             if(data.success){
                 dispatch({type:'user', value:{...user, password:sha256(password)}})
+                dispatch({type:'alert', value:'Password changed successfully'})
                 setPassword('')
                 setConfirmPassword('')
             } else {

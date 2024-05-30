@@ -82,7 +82,7 @@ const main = async () => {
       } else {
         Object.keys(matches).forEach((key2:string) => {
           const match2 = matches[key2]
-          if(key != key2 && InRange(match.rating, match2.rating, Date.now() - match.time)){
+          if(key != key2 && InRange(match.rating, match2.rating, (Date.now() - match.time)/10)){
             const arr:IMatch[] = [matches[key], matches[key2]]
             delete matches[key]
             delete matches[key2]
