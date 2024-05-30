@@ -8,7 +8,7 @@ interface IUser{
     avc:number[]; // average combo
     acc:number[]; // accuracy
     wins:number;
-    losses:number;
+    loses:number;
     admin:boolean;
     banned:boolean;
 }

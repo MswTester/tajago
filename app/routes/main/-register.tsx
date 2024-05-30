@@ -25,7 +25,7 @@ export default function Register(props:{setLpage:Dispatch<SetStateAction<string>
             avc:[],
             acc:[],
             wins:0,
-            losses:0,
+            loses:0,
             admin:false,
             banned:false
         }
