@@ -18,7 +18,7 @@ export default function InRoom(props:socketProps) {
     const leftRef = useRef<HTMLDivElement>(null)
     const rightRef = useRef<HTMLDivElement>(null)
     const topRef = useRef<HTMLDivElement>(null)
-
+    const [lang, setLang] = useState<string>('en')
 
     useEffect(() => setOnce(true), [])
     useEffect(() => {
@@ -86,6 +86,13 @@ export default function InRoom(props:socketProps) {
                     setChat('')
                 }
             }} />
+            {roomId == socket.id ? <select className="p-2 rounded-md w-full" onChange={e => {
+                setLang(e.target.value)
+                socket.emit('update-room', roomId, 'lang', e.target.value)
+            }} value={lang}>
+                <option className="bg-black" value="en">English</option>
+                <option className="bg-black" value="ko">Korean</option>
+            </select> : <p className="text-neutral-400 p-2 rounded-md w-full bg-[#a5a7]" style={{boxShadow:'0 0 20px #fff'}}>{room.lang == 'en' ? 'English' : 'Korean'}</p>}
             {roomId == socket.id && <button className="p-2 rounded-md w-full" onClick={e => {
                 socket.emit('start', roomId)
             } }>Start</button>}

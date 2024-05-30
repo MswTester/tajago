@@ -18,6 +18,7 @@ interface IRoom{
   private:boolean;
   owner:string; // owner username
   status:string; // waiting, playing
+  lang:string; // language
 }
 
 interface InRoomPlayer{
@@ -87,7 +88,7 @@ const main = async () => {
             delete matches[key]
             delete matches[key2]
             const roomID = Math.random().toString(36).substring(2, 15)
-            games.push(new Game(roomID, arr.map(v => new Player(v.roomID, v.name, v.rating)), true))
+            games.push(new Game('en', roomID, arr.map(v => new Player(v.roomID, v.name, v.rating)), true))
             io.to(key).emit('match-found', roomID)
             io.to(key2).emit('match-found', roomID)
             io.to(key).socketsJoin(roomID)
@@ -166,7 +167,8 @@ const main = async () => {
         name: name,
         private: pri,
         owner: nick,
-        status: 'waiting'
+        status: 'waiting',
+        lang: 'en'
       }
       socket.join(socket.id)
       socket.emit('create', rooms[socket.id])
@@ -189,12 +191,17 @@ const main = async () => {
       }
     })
 
+    socket.on('update-room', (roomId:string, key:string, value:string) => {
+      (rooms[roomId] as any)[key] = value
+      io.to(roomId).emit('update', rooms[roomId])
+    })
+
     socket.on('start', (roomID:string) => {
       if(rooms[roomID].players.length < 2){
         socket.emit('error', 'Room is not full')
         return
       }
-      const game = new Game(roomID, rooms[roomID].players.map(v => new Player(v.socketID, v.name, v.rating)))
+      const game = new Game(rooms[roomID].lang, roomID, rooms[roomID].players.map(v => new Player(v.socketID, v.name, v.rating)))
       games.push(game)
       io.to(roomID).emit('start')
     })

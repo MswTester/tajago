@@ -66,6 +66,9 @@ export default function Game(props:socketProps) {
     const [combo, setCombo] = useState<number>(0)
     const [combod, setCombod] = useState<number>(Date.now())
 
+    const [onBot, setOnBot] = useState<boolean>(false)
+    const [botSpeed, setBotSpeed] = useState<number>(0)
+
     useEffect(() => setOnce(true), [])
     useEffect(() => {
         if(once){
@@ -316,6 +319,29 @@ export default function Game(props:socketProps) {
         }
     }, [onGameOver])
 
+    useEffect(() => {
+        if(onBot){
+            let _last = Date.now()
+            let _player:Player|null = null;
+            const _loop = setInterval(() => {
+                if(Date.now() - _last > botSpeed*1000){
+                    if(!_player) return;
+                    if(_player.queue.length > 0){
+                        socket.emit('game-attack', roomId, _player.queue[0].word)
+                        _last = Date.now()
+                    }
+                }
+            }, 1000/30)
+            socket.on('game-players', (players:Player[]) => {
+                _player = players.find(player => player.socketID == socket.id) || null
+            })
+            return () => {
+                clearInterval(_loop)
+                socket.off('game-players')
+            }
+        }
+    }, [onBot, botSpeed])
+
     const globalHeight = size - 160
 
     return <div className="w-full h-full flex flex-row justify-center items-center overflow-hidden gap-4 fade" ref={mainRef}>
@@ -330,7 +356,7 @@ export default function Game(props:socketProps) {
         {/* PlayBox */}
         <div className={`rounded-lg font-bold text-lg flex flex-col justify-center ${boxShadow ? "" : "border-2 border-[#faf]"}`}
         style={{width:`${size/2}px`, height:`${globalHeight}px`, transform:`translate(${playboxPos[0]}px, ${playboxPos[1]}px)`}}>
-            <div className="w-full h-full rounded-t-lg relative p-1 gap-1" style={{boxShadow: boxShadow ? 'inset 0 0 20px #f7f' : "none"}}>
+            <div className="w-full h-full rounded-t-lg relative p-1 gap-1 select-none" style={{boxShadow: boxShadow ? 'inset 0 0 20px #f7f' : "none"}}>
                 {myPlayer ? reversed(myPlayer.queue).map((v:WordBlock, i) => {
                     return <div key={i} className="w-full h-[10%] flex justify-center items-center text-center border-2 border-[#faf] rounded-lg"
                     style={{boxShadow: boxShadow ? `inset 0 0 10px #f9f, 0 0 10px #f9f` : "none"
@@ -340,6 +366,8 @@ export default function Game(props:socketProps) {
             <input type="text" name="" id="" className="w-full rounded-b-lg p-2 text-center" value={input}
             onChange={e => setInput(e.target.value)} placeholder="Type Here"
             onKeyDown={e => {
+                if(e.ctrlKey) e.preventDefault()
+                if(input.trim().length == 0) return
                 if(e.key === 'Enter' || e.key === ' ') {
                     if(myPlayer){
                         socket.emit('game-attack', roomId, input.trim())
@@ -428,6 +456,11 @@ export default function Game(props:socketProps) {
             style={{textShadow: textShadow ? "0 0 10px #ff99, 0 0 20px #ff88, 0 0 30px #ff77, 0 0 40px #ff66" : "none",
                 animation:'f3 0.5s ease-in-out 0.4s'
             }}>{rewardRate}</div>}
+        </div>}
+        {/* Dev Tools */}
+        {user.admin && <div className="absolute top-0 right-0">
+            <input className="p-2 rounded-md" type="text" name="" id="" placeholder="Delay" value={botSpeed} onChange={e => setBotSpeed((+e.target.value) || 0)} />
+            <button className="w-full p-2 rounded-md" onClick={e => setOnBot(!onBot)}>{onBot ? "Off" : "On"}</button>
         </div>}
     </div>
 }

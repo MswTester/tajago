@@ -64,6 +64,7 @@ interface IRoom{
     private:boolean;
     owner:string; // owner username
     status:string; // waiting, playing
+    lang:string; // language
 }
 
 interface InRoomPlayer{

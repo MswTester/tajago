@@ -6,7 +6,7 @@ export class Game{
     players:Player[]; // The players in the game
     isRank:boolean; // The rank status of the game
     status:string; // waiting, ready, playing
-    language:string = 'ko'; // The language of the game
+    language:string = 'en'; // The language of the game
     seed:number; // The seed of the game
 
     spawnDelay:number = 3000; // The delay between spawns
@@ -17,7 +17,8 @@ export class Game{
 
     lastMotion:[number, number] = [0, 0]; // The [time, idx] of the last motion
     attacked:boolean = false; // The attacked status
-    constructor(roomID:string, players:Player[], isRank:boolean = false){
+    constructor(lang:string, roomID:string, players:Player[], isRank:boolean = false){
+        this.language = lang;
         this.roomID = roomID;
         this.players = players;
         this.isRank = isRank;
