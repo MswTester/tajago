@@ -23,6 +23,13 @@ export default function Game(props:socketProps) {
     const room:IRoom = useSelector((state:any) => state.room)
     const [once, setOnce] = useState<boolean>(false)
     const mainRef = useRef<HTMLDivElement>(null)
+
+    const boxShadow:boolean = useSelector((state:any) => state.boxShadow)
+    const textShadow:boolean = useSelector((state:any) => state.textShadow)
+    const backParticle:boolean = useSelector((state:any) => state.backParticle)
+    const frontParticle:boolean = useSelector((state:any) => state.frontParticle)
+    const circle:boolean = useSelector((state:any) => state.circle)
+
     const [objs, setObjs] = useState<Obj[]>([])
     const [frontObjs, setFrontObjs] = useState<Obj[]>([])
     const [myPlayer, setMyPlayer] = useState<Player|null>(null)
@@ -313,20 +320,20 @@ export default function Game(props:socketProps) {
 
     return <div className="w-full h-full flex flex-row justify-center items-center overflow-hidden gap-4 fade" ref={mainRef}>
         {/* Back Particle */}
-        <WebCanvas idx={-1} objs={objs} bg="linear-gradient(86deg, #201, #402, #201)" />
+        {<WebCanvas idx={-1} objs={backParticle ? objs : []} bg="linear-gradient(86deg, #201, #402, #201)" />}
         {/* Damage Gage */}
-        {myPlayer && <div className="w-4 rounded-full border border-white shar4 overflow-hidden"
+        {myPlayer && <div className={`w-4 rounded-full border border-white ${boxShadow ? "shar4" : ""} overflow-hidden`}
         style={{height:`${globalHeight}px`, transform:`translate(${playboxPos[0]}px, ${playboxPos[1]}px)`}}>
             {doing && <div className="w-full rounded-full bg-[#faa] trans" style={{height:`${(myPlayer.attackQueue.reduce((a, b) => a + b[0], 0))*4}%`,
-            boxShadow:'0 0 10px #faa, 0 0 20px #faad, 0 0 30px #faab'}}></div>}
+            boxShadow: boxShadow ? '0 0 10px #faa, 0 0 20px #faad, 0 0 30px #faab' : "none"}}></div>}
         </div>}
         {/* PlayBox */}
-        <div className="rounded-lg font-bold text-lg flex flex-col justify-center"
+        <div className={`rounded-lg font-bold text-lg flex flex-col justify-center ${boxShadow ? "" : "border-2 border-[#faf]"}`}
         style={{width:`${size/2}px`, height:`${globalHeight}px`, transform:`translate(${playboxPos[0]}px, ${playboxPos[1]}px)`}}>
-            <div className="w-full h-full rounded-t-lg relative p-1 gap-1" style={{boxShadow:'inset 0 0 20px #f7f'}}>
+            <div className="w-full h-full rounded-t-lg relative p-1 gap-1" style={{boxShadow: boxShadow ? 'inset 0 0 20px #f7f' : "none"}}>
                 {myPlayer ? reversed(myPlayer.queue).map((v:WordBlock, i) => {
                     return <div key={i} className="w-full h-[10%] flex justify-center items-center text-center border-2 border-[#faf] rounded-lg"
-                    style={{boxShadow:`inset 0 0 10px #f9f, 0 0 10px #f9f`
+                    style={{boxShadow: boxShadow ? `inset 0 0 10px #f9f, 0 0 10px #f9f` : "none"
                     }} ref={i == 0 ? firstRef : null}>{v.word}</div>
                 }) : null}
             </div>
@@ -342,28 +349,28 @@ export default function Game(props:socketProps) {
             }} />
         </div>
         {/* Spawn Cooltime */}
-        {myPlayer && <div className="w-4 rounded-full border border-white shar4 overflow-hidden"
+        {myPlayer && <div className={`w-4 rounded-full border border-white ${boxShadow ? "shar4" : ""} overflow-hidden`}
         style={{height:`${(globalHeight)/4}px`, transform:`translate(${playboxPos[0]}px, ${playboxPos[1]}px)`}}>
             {doing && <div className="w-full rounded-full bg-[#faf]" style={{height:`${(timeline - myPlayer?.spawned) / 30}%`,
-            boxShadow:'0 0 10px #faf, 0 0 20px #fafd, 0 0 30px #fafb'}}></div>}
+            boxShadow:boxShadow ? '0 0 10px #faf, 0 0 20px #fafd, 0 0 30px #fafb' : "none"}}></div>}
         </div>}
         {/* Combo */}
         {combo > 1 && <div className="absolute text-2xl lg:text-3xl text-[#faa] font-anton"
-        style={{textShadow:"0 0 10px #faa9, 0 0 20px #faa8, 0 0 30px #faa7, 0 0 40px #faa6",
+        style={{textShadow: textShadow ? "0 0 10px #faa9, 0 0 20px #faa8, 0 0 30px #faa7, 0 0 40px #faa6" : "none",
             top:`${height/2 + size/3}px`, left:`${width/2 + size/4 + 20}px`, transform:'translate(0, -50%)',
             opacity:Math.max(0, 1 - (timeline - combod) / 1000)
         }}>{combo} Combo</div>}
         {/* Score board */}
         <div className="top-0 absolute w-24 rounded-b-lg flex flex-col justify-center items-center bg-[#000a] border-2 border-[#fdf] text-[#faf] text-md lg:text-lg"
-        style={{boxShadow: `0 0 10px #fcf, 0 0 20px #fbf, 0 0 30px #faf`}}>{scoreText}</div>
+        style={{boxShadow: boxShadow ? `0 0 10px #fcf, 0 0 20px #fbf, 0 0 30px #faf` : "none"}}>{scoreText}</div>
         {/* Circle */}
-        <div ref={circleRef} className="absolute pointer-events-none rounded-full" style={{
+        {circle && <div ref={circleRef} className="absolute pointer-events-none rounded-full" style={{
             width: size*1.5, height: size*1.5,
             top: `50%`, left: `50%`,
             transform: `translate(-50%, -50%)`,
-        }}></div>
+        }}></div>}
         {/* front particle */}
-        <WebCanvas idx={1} objs={frontObjs} />
+        {frontParticle && <WebCanvas idx={1} objs={frontObjs} />}
         {/* Mood Gradient Overlay */}
         <div className="absolute w-full h-full top-0 left-0 pointer-events-none" style={{
             background: 'radial-gradient(50% 50% at 50% 50%, #0000, #0005)',
@@ -372,7 +379,7 @@ export default function Game(props:socketProps) {
         }}></div>
         {/* Start Alert */}
         {onW && <div className="absolute pointer-events-none flex flex-col justify-center items-center font-anton text-center text-6xl lg:text-8xl" style={{
-            textShadow: '0 0 10px #ff09, 0 0 20px #ff08, 0 0 30px #ff07, 0 0 40px #ff06',
+            textShadow: textShadow ? '0 0 10px #ff09, 0 0 20px #ff08, 0 0 30px #ff07, 0 0 40px #ff06' : "none",
             color:'#ff0',
             top: `50%`, left: `50%`,
             transform: `translate(-50%, -50%)`,
@@ -384,24 +391,24 @@ export default function Game(props:socketProps) {
         {/* Players Match */}
         {onOverlay && <div className="absolute pointer-events-none w-full h-full top-0 left-0 fade" style={{...overlayStyle, background:'#000a'}} ref={overlayRef}>
             <div className="text-6xl lg:text-8xl text-[#ffa] absolute font-anton"
-            style={{textShadow:"0 0 10px #ff99, 0 0 20px #ff88, 0 0 30px #ff77, 0 0 40px #ff66",
+            style={{textShadow: textShadow ? "0 0 10px #ff99, 0 0 20px #ff88, 0 0 30px #ff77, 0 0 40px #ff66" : "none",
             transform:'translate(-50%, -50%)', top:`25%`, left:`${75 - (50 * p1D)}%`}}>{p1Txt}</div>
             <div className="text-6xl lg:text-8xl text-[#ffa] absolute font-anton"
-            style={{textShadow:"0 0 10px #ff99, 0 0 20px #ff88, 0 0 30px #ff77, 0 0 40px #ff66",
+            style={{textShadow: textShadow ? "0 0 10px #ff99, 0 0 20px #ff88, 0 0 30px #ff77, 0 0 40px #ff66" : "none",
             transform:'translate(-50%, -50%)', top:`50%`, left:`50%`}}>VS</div>
             <div className="text-6xl lg:text-8xl text-[#ffa] absolute font-anton"
-            style={{textShadow:"0 0 10px #ff99, 0 0 20px #ff88, 0 0 30px #ff77, 0 0 40px #ff66",
+            style={{textShadow: textShadow ? "0 0 10px #ff99, 0 0 20px #ff88, 0 0 30px #ff77, 0 0 40px #ff66" : "none",
             transform:'translate(-50%, -50%)', top:`75%`, left:`${25 + (50 * p2D)}%`}}>{p2Txt}</div>
         </div>}
         {/* Game Over */}
         {onGameOver && <div className="absolute pointer-events-none w-full h-full top-0 left-0 flex flex-col justify-center items-center fade"
         style={{...gameOverStyle, background:'rgba(0, 0, 0, 0.7)'}}>
             <div className="text-6xl lg:text-8xl text-[#faf] font-anton"
-            style={{textShadow:"0 0 10px #f9f9, 0 0 20px #f8f8, 0 0 30px #f7f7, 0 0 40px #f6f6"}}
+            style={{textShadow: textShadow ? "0 0 10px #f9f9, 0 0 20px #f8f8, 0 0 30px #f7f7, 0 0 40px #f6f6" : "none"}}
             ref={gameOverRef}>{gameOverWinner} Win!</div>
             <div className="text-3xl lg:text-4xl text-[#fff] absolute font-anton"
             style={{
-                textShadow:"0 0 10px #fff6, 0 0 20px #fff5, 0 0 30px #fff4, 0 0 40px #fff3",
+                textShadow: textShadow ? "0 0 10px #fff6, 0 0 20px #fff5, 0 0 30px #fff4, 0 0 40px #fff3" : "none",
                 bottom:`30%`, left:`50%`, transform:'translate(-50%, -50%)'
             }}
             ref={gameOverScoreRef}>{scoreText}</div>
@@ -410,15 +417,15 @@ export default function Game(props:socketProps) {
         {onFinish && <div className="absolute pointer-events-none w-full h-full top-0 left-0 flex flex-col justify-center items-center gap-2 fade"
         style={{background:'rgba(0, 0, 0, 0.7)'}} ref={finishRef}>
             <div className="text-6xl lg:text-8xl text-[#faf] font-anton"
-            style={{textShadow:"0 0 10px #f9f9, 0 0 20px #f8f8, 0 0 30px #f7f7, 0 0 40px #f6f6",
+            style={{textShadow: textShadow ? "0 0 10px #f9f9, 0 0 20px #f8f8, 0 0 30px #f7f7, 0 0 40px #f6f6" : "none",
                 animation:'f1 0.5s ease-in-out'
             }}>Finished!</div>
             <div className="text-3xl lg:text-4xl text-[#fff] font-anton"
-            style={{textShadow:"0 0 10px #fff6, 0 0 20px #fff5, 0 0 30px #fff4, 0 0 40px #fff3",
+            style={{textShadow: textShadow ? "0 0 10px #fff6, 0 0 20px #fff5, 0 0 30px #fff4, 0 0 40px #fff3" : "none",
                 animation:'f2 0.5s ease-in-out 0.2s'
             }}>You {isWin ? "Win" : "Lose"}</div>
             {isRank && <div className="text-2xl lg:text-3xl text-[#ffa] font-anton"
-            style={{textShadow:"0 0 10px #ff99, 0 0 20px #ff88, 0 0 30px #ff77, 0 0 40px #ff66",
+            style={{textShadow: textShadow ? "0 0 10px #ff99, 0 0 20px #ff88, 0 0 30px #ff77, 0 0 40px #ff66" : "none",
                 animation:'f3 0.5s ease-in-out 0.4s'
             }}>{rewardRate}</div>}
         </div>}

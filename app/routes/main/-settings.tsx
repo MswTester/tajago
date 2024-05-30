@@ -8,6 +8,13 @@ export default function SettingState(props:socketProps){
     const dispatch = useDispatch();
     const mainRef = useRef<HTMLDivElement>(null)
     const [once, setOnce] = useState<boolean>(false)
+
+    const boxShadow:boolean = useSelector((state:any) => state.boxShadow)
+    const textShadow:boolean = useSelector((state:any) => state.textShadow)
+    const frontParticle:boolean = useSelector((state:any) => state.frontParticle)
+    const backParticle:boolean = useSelector((state:any) => state.backParticle)
+    const circle:boolean = useSelector((state:any) => state.circle)
+
     const homeState = useSelector((state:any) => state.homeState)
     const isFetching = useSelector((state:any) => state.isFetching)
     const user = useSelector((state:any) => state.user)
@@ -68,8 +75,8 @@ export default function SettingState(props:socketProps){
         })
     }
 
-    return <div className="w-full h-full flex flex-col justify-center items-center pt-10 pb-5">
-        <div className="w-[80%] h-full p-2 flex flex-col justify-center items-center gap-2 shar5 rounded-lg overflow-y-auto overflow-x-hidden" ref={mainRef}>
+    return <div className="w-full h-full flex flex-col justify-center items-center pt-10 pb-5 overflow-hidden">
+        <div className="w-[80%] h-full p-2 flex flex-col justify-start items-center gap-2 shar5 rounded-lg overflow-y-auto overflow-x-hidden" ref={mainRef}>
             <div className="w-full flex flex-row justify-center gap-5 p-2 items-center">
                 <input disabled={isFetching} type="text" name="" id="" className="p-2 rounded-md" placeholder="Username" value={username} onChange={e => setUsername(e.target.value)} />
             </div>
@@ -84,6 +91,36 @@ export default function SettingState(props:socketProps){
             </div>
             <div className="w-full flex flex-row justify-center gap-5 p-2 items-center">
                 <button disabled={isFetching} className="p-2 rounded-md" onClick={changePassword}>Change Password</button>
+            </div>
+            <div className="w-full flex flex-row justify-center gap-5 p-2 items-center">
+                <div className="w-4 h-4 rounded-full sha flex justify-center items-center cursor-pointer" onClick={e => dispatch({type:'boxShadow', value:!boxShadow})}>
+                    {boxShadow && <div className="w-3 h-3 rounded-full bg-[#fff]" style={{boxShadow:'0 0 20px #fff'}}></div>}
+                </div>
+                <div>Box Shadow</div>
+            </div>
+            <div className="w-full flex flex-row justify-center gap-5 p-2 items-center">
+                <div className="w-4 h-4 rounded-full sha flex justify-center items-center cursor-pointer" onClick={e => dispatch({type:'textShadow', value:!textShadow})}>
+                    {textShadow && <div className="w-3 h-3 rounded-full bg-[#fff]" style={{boxShadow:'0 0 20px #fff'}}></div>}
+                </div>
+                <div>Text Shadow</div>
+            </div>
+            <div className="w-full flex flex-row justify-center gap-5 p-2 items-center">
+                <div className="w-4 h-4 rounded-full sha flex justify-center items-center cursor-pointer" onClick={e => dispatch({type:'frontParticle', value:!frontParticle})}>
+                    {frontParticle && <div className="w-3 h-3 rounded-full bg-[#fff]" style={{boxShadow:'0 0 20px #fff'}}></div>}
+                </div>
+                <div>Front Particle</div>
+            </div>
+            <div className="w-full flex flex-row justify-center gap-5 p-2 items-center">
+                <div className="w-4 h-4 rounded-full sha flex justify-center items-center cursor-pointer" onClick={e => dispatch({type:'backParticle', value:!backParticle})}>
+                    {backParticle && <div className="w-3 h-3 rounded-full bg-[#fff]" style={{boxShadow:'0 0 20px #fff'}}></div>}
+                </div>
+                <div>Back Particle</div>
+            </div>
+            <div className="w-full flex flex-row justify-center gap-5 p-2 items-center">
+                <div className="w-4 h-4 rounded-full sha flex justify-center items-center cursor-pointer" onClick={e => dispatch({type:'circle', value:!circle})}>
+                    {circle && <div className="w-3 h-3 rounded-full bg-[#fff]" style={{boxShadow:'0 0 20px #fff'}}></div>}  
+                </div>
+                <div>Circle</div>
             </div>
         </div>
     </div>

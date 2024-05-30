@@ -9,6 +9,11 @@ const initialAppState = {
     isMatching:false,
     roomId:'',
     room:null,
+    boxShadow:true,
+    textShadow:true,
+    backParticle:true,
+    frontParticle:true,
+    circle:true,
 };
 export const rootReducer = (
     state = initialAppState,

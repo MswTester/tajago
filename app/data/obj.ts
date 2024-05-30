@@ -77,7 +77,7 @@ export default class Obj{
         return shadowDatas;
     }
 
-    getStyle():React.CSSProperties{
+    getStyle(boxShadow:boolean = true):React.CSSProperties{
         let shadowDatas:[number, vec4][] = this.calculateShadows()
         if(shadowDatas.length == 0) shadowDatas.push([0, this.color])
         const startColor:vec4 = shadowDatas[0][1];
@@ -92,7 +92,7 @@ export default class Obj{
             transform:`translate(${this.pivot[0] * 100}%, ${this.pivot[1] * 100}%) rotate(${this.rotation}deg) scale(${this.scale[0]}, ${this.scale[1]})`,
             backgroundColor:this.glow ? `rgba(${startColor.join(',')})` : `rgba(${this.color.join(',')})`,
             borderRadius:`${this.rounded}px`,
-            boxShadow:this.glow ? shadows : 'none',
+            boxShadow: boxShadow ? this.glow ? shadows : 'none' : 'none',
             opacity:this.alpha,
             fontFamily:this.textConfig.font,
             fontSize:`${this.textConfig.size}px`,
