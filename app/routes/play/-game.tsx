@@ -354,7 +354,7 @@ export default function Game(props:socketProps) {
             opacity:Math.max(0, 1 - (timeline - combod) / 1000)
         }}>{combo} Combo</div>}
         {/* Score board */}
-        <div className="top-0 absolute w-24 rounded-b-lg flex flex-col justify-center items-center bg-[#000a] border-2 border-[#fdf] text-[#faf]"
+        <div className="top-0 absolute w-24 rounded-b-lg flex flex-col justify-center items-center bg-[#000a] border-2 border-[#fdf] text-[#faf] text-md lg:text-lg"
         style={{boxShadow: `0 0 10px #fcf, 0 0 20px #fbf, 0 0 30px #faf`}}>{scoreText}</div>
         {/* Circle */}
         <div ref={circleRef} className="absolute pointer-events-none rounded-full" style={{
