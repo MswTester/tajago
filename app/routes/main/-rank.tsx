@@ -31,7 +31,7 @@ export default function RankState(props:socketProps){
     }, [scrollHeight])
 
     return <div className="w-full h-full flex flex-col justify-center items-center pt-10 pb-5 overflow-hidden">
-        <div className="w-[80%] h-full p-2 flex flex-col justify-center items-center gap-2 shar5 rounded-lg overflow-x-hidden overflow-y-auto" ref={mainRef} onScroll={e => {
+        <div className="w-[80%] h-full p-2 flex flex-col justify-start items-center gap-2 shar5 rounded-lg overflow-x-hidden overflow-y-auto" ref={mainRef} onScroll={e => {
             const element = e.target as HTMLDivElement
             setScrollHeight(element.scrollHeight - element.clientHeight)
         }}>
